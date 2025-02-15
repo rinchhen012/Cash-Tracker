@@ -1,5 +1,5 @@
 import { defineConfig } from 'vite';
-import react from '@vitejs/plugin-react-swc';
+import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
 
 export default defineConfig({
@@ -18,14 +18,9 @@ export default defineConfig({
     }
   },
   plugins: [
-    react({
-      jsxImportSource: '@emotion/react'
-    }),
+    react(),
     VitePWA({
-      strategies: 'injectManifest',
-      srcDir: 'public',
-      filename: 'sw.js',
-      registerType: 'prompt',
+      registerType: 'autoUpdate',
       includeAssets: ['icon.svg'],
       manifest: {
         name: 'Change Tracker',
@@ -43,10 +38,6 @@ export default defineConfig({
           }
         ],
         start_url: '/'
-      },
-      devOptions: {
-        enabled: true,
-        type: 'module'
       }
     })
   ]
