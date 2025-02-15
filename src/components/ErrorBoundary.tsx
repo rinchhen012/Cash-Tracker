@@ -1,4 +1,4 @@
-import { Component, ErrorInfo, ReactNode } from 'react';
+import React, { Component, ErrorInfo, ReactNode } from 'react';
 import { Container, Title, Text, Button, Stack, Paper } from '@mantine/core';
 
 interface Props {
@@ -27,13 +27,14 @@ class ErrorBoundary extends Component<Props, State> {
     if (this.state.hasError) {
       return (
         <Container size="sm" py="xl">
-          <Paper>
-            <Stack gap="xl">
+          <Paper shadow="md" p="xl" radius="md" withBorder>
+            <Stack spacing="xl">
               <Title order={1} c="red">Something went wrong</Title>
               <Text>{this.state.error?.message}</Text>
               <Button
                 onClick={() => window.location.reload()}
                 variant="light"
+                color="blue"
               >
                 Reload page
               </Button>

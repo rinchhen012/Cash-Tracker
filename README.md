@@ -1,47 +1,53 @@
 # Change Tracker
 
-A web application for tracking cash transactions and calculating change for delivery drivers at Namaste Narimasu.
+A Progressive Web App (PWA) for tracking cash change calculations for delivery drivers.
 
 ## Features
 
-- Calculate change for transactions
-- Track transactions by driver
-- View transaction history
-- Dark theme for night use
-- Bilingual labels (English/Nepali)
-- Works offline (PWA)
-- Mobile-friendly design
+- Driver selection (1-5)
+- Calculate change for cash on delivery
+- Transaction history with filtering
+- Daily reset with historical data preservation
+- PWA support for offline access
+- Responsive design
 
-## Tech Stack
-
-- React
-- TypeScript
-- Mantine UI
-- Supabase
-- Vite
-- PWA
-
-## Getting Started
+## Setup
 
 1. Clone the repository
 2. Install dependencies:
    ```bash
    npm install
    ```
-3. Create a `.env` file with your Supabase credentials:
-   ```
-   VITE_SUPABASE_URL=your_supabase_url
-   VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
-   ```
-4. Run the development server:
+3. Create a Firebase project and enable Firestore
+4. Copy `.env.example` to `.env` and fill in your Firebase configuration values
+5. Start the development server:
    ```bash
    npm run dev
    ```
 
-## Deployment
+## Deployment to Vercel
 
-The app is deployed using Vercel and can be accessed at [insert-url-here].
+1. Create a Vercel account if you don't have one
+2. Install Vercel CLI:
+   ```bash
+   npm install -g vercel
+   ```
+3. Login to Vercel:
+   ```bash
+   vercel login
+   ```
+4. Deploy the app:
+   ```bash
+   vercel
+   ```
+5. Add your environment variables in the Vercel dashboard
 
-## License
+## Technologies Used
 
-MIT
+- React
+- TypeScript
+- Vite
+- Mantine UI
+- Firebase/Firestore
+- PWA
+- Vercel
