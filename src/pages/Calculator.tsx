@@ -84,6 +84,8 @@ const Calculator = () => {
                       }
                     }
                   })}
+                  inputMode="numeric"
+                  pattern="[0-9]*"
                 />
 
                 <NumberInput
@@ -105,6 +107,8 @@ const Calculator = () => {
                       }
                     }
                   })}
+                  inputMode="numeric"
+                  pattern="[0-9]*"
                 />
               </Stack>
             </Paper>
