@@ -11,7 +11,7 @@ const LoadingScreen = () => {
         justifyContent: 'center' 
       }}
     >
-      <Stack align="center" spacing="md">
+      <Stack gap="md" align="center">
         <Loader size="lg" color="blue" />
         <Text size="lg" c="dimmed">Loading Change Tracker...</Text>
       </Stack>

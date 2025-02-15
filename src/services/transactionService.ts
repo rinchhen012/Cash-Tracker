@@ -1,5 +1,50 @@
-import { supabase } from '../config/supabase';
-import { Transaction } from '../types';
+import { createClient } from '@supabase/supabase-js';
+
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+const supabase = createClient(supabaseUrl, supabaseKey);
+
+export interface Transaction {
+  id: string;
+  driver_id: number;
+  amount_received: number;
+  bill_amount: number;
+  change_amount: number;
+  created_at: string;
+}
+
+export const saveTransaction = async (transaction: Omit<Transaction, 'id' | 'created_at'>) => {
+  const { data, error } = await supabase
+    .from('transactions')
+    .insert([transaction])
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data;
+};
+
+export const getTransactions = async () => {
+  const { data, error } = await supabase
+    .from('transactions')
+    .select('*')
+    .order('created_at', { ascending: false });
+
+  if (error) throw error;
+  return data;
+};
+
+export const getTransactionsByDriver = async (driverId: number) => {
+  const { data, error } = await supabase
+    .from('transactions')
+    .select('*')
+    .eq('driver_id', driverId)
+    .order('created_at', { ascending: false });
+
+  if (error) throw error;
+  return data;
+};
 
 export const addTransaction = async (transaction: Omit<Transaction, 'id'>) => {
   try {

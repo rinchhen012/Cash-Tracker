@@ -9,16 +9,17 @@ import '@mantine/core/styles.css';
 const theme = createTheme({
   primaryColor: 'blue',
   defaultRadius: 'md',
-  colorScheme: 'dark',
   components: {
     Paper: {
       defaultProps: {
-        bg: 'dark.7'
+        withBorder: true,
+        p: 'xl',
+        radius: 'md'
       }
     },
     Button: {
       defaultProps: {
-        color: 'blue.4'
+        color: 'blue'
       }
     }
   }
@@ -27,7 +28,7 @@ const theme = createTheme({
 const App = () => {
   return (
     <ErrorBoundary>
-      <MantineProvider theme={theme} defaultColorScheme="dark">
+      <MantineProvider theme={theme}>
         <Router>
           <Routes>
             <Route path="/" element={<Home />} />

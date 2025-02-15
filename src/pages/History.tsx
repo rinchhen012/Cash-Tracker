@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
 import { Container, Title, Button, Stack, Text, Select, Paper, Box, Group, Alert, LoadingOverlay } from '@mantine/core';
 import { useNavigate } from 'react-router-dom';
-import { IconArrowLeft, IconFilter, IconWifiOff } from '@tabler/icons-react';
+import { IconArrowLeft, IconFilter, IconWifiOff, IconCurrencyYen } from '@tabler/icons-react';
 import { getAllTransactions } from '../services/transactionService';
 import { Transaction } from '../types';
 import dayjs from 'dayjs';
+import LoadingScreen from '../components/LoadingScreen';
 
 const History = () => {
   const navigate = useNavigate();
@@ -125,6 +126,19 @@ const History = () => {
     );
   }
 
+  if (loading) {
+    return <LoadingScreen />;
+  }
+
+  const groupedTransactions = transactions.reduce((groups, transaction) => {
+    const date = new Date(transaction.created_at).toLocaleDateString();
+    if (!groups[date]) {
+      groups[date] = [];
+    }
+    groups[date].push(transaction);
+    return groups;
+  }, {} as Record<string, Transaction[]>);
+
   return (
     <Box 
       sx={(theme) => ({
@@ -134,179 +148,79 @@ const History = () => {
       })}
     >
       <Container size="md" py="xl">
-        <Stack gap="lg">
-          <LoadingOverlay visible={loading} overlayProps={{ blur: 2 }} />
-          
-          {isOffline && (
-            <Alert 
-              color="yellow" 
-              title="Offline Mode" 
-              icon={<IconWifiOff size={16} />}
-              styles={{
-                root: { backgroundColor: 'rgba(255, 184, 0, 0.1)' }
-              }}
-            >
-              You are currently offline. Some features may be limited.
-            </Alert>
-          )}
-
-          <Paper 
-            shadow="md" 
-            p="xl" 
-            radius="md" 
-            withBorder
-            bg="dark.7"
-            style={{ borderColor: 'rgba(255, 255, 255, 0.1)' }}
+        <Stack gap="xl">
+          <Button
+            variant="light"
+            color="blue"
+            leftSection={<IconArrowLeft size={20} />}
+            onClick={() => navigate('/')}
+            style={{
+              '&:hover': {
+                backgroundColor: 'rgba(51, 154, 240, 0.1)'
+              }
+            }}
           >
-            <Stack gap="lg">
-              <Group justify="space-between" align="center">
-                <Button 
-                  variant="subtle" 
-                  leftSection={<IconArrowLeft size={16} />}
-                  onClick={() => navigate('/')}
-                  color="gray.4"
-                >
-                  Back
-                </Button>
-                <Title order={2} size="h3" c="gray.3">Transaction History</Title>
-              </Group>
+            Back
+          </Button>
 
-              <Paper 
-                withBorder 
-                p="md" 
-                radius="md"
-                bg="dark.6"
-                style={{ borderColor: 'rgba(255, 255, 255, 0.1)' }}
-              >
-                <Stack gap="md">
-                  <Group align="flex-start" grow>
-                    <Select
-                      label={<Text c="gray.3">Filter by Driver</Text>}
-                      placeholder="All Drivers"
-                      data={driverOptions}
-                      value={selectedDriver}
-                      onChange={setSelectedDriver}
-                      clearable
-                      leftSection={<IconFilter size={16} />}
-                      styles={(theme) => ({
-                        input: {
-                          backgroundColor: theme.colors.dark[8],
-                          color: theme.colors.gray[3],
-                          borderColor: 'rgba(255, 255, 255, 0.1)'
-                        }
-                      })}
-                    />
-                    <Select
-                      label={<Text c="gray.3">Filter by Date</Text>}
-                      placeholder="All Dates"
-                      data={uniqueDates}
-                      value={selectedDate}
-                      onChange={setSelectedDate}
-                      clearable
-                      leftSection={<IconFilter size={16} />}
-                      styles={(theme) => ({
-                        input: {
-                          backgroundColor: theme.colors.dark[8],
-                          color: theme.colors.gray[3],
-                          borderColor: 'rgba(255, 255, 255, 0.1)'
-                        }
-                      })}
-                    />
-                  </Group>
+          <Title order={2} c="gray.3">Transaction History</Title>
 
-                  <Group grow>
-                    <Paper 
-                      withBorder 
-                      p="md" 
+          {Object.entries(groupedTransactions).map(([date, dayTransactions]) => (
+            <Paper key={date} withBorder radius="md" p="xl">
+              <Stack gap="md">
+                <Title order={3} c="gray.4">{date}</Title>
+
+                <Stack gap="sm">
+                  {dayTransactions.map((transaction) => (
+                    <Paper
+                      key={transaction.id}
+                      withBorder
                       radius="md"
-                      bg="dark.8"
-                      style={{ borderColor: 'rgba(255, 255, 255, 0.1)' }}
+                      p="md"
+                      style={{
+                        borderColor: 'rgba(255, 255, 255, 0.1)'
+                      }}
                     >
-                      <Stack spacing={0} align="center">
-                        <Text size="sm" c="gray.4">Total Transactions</Text>
-                        <Text size="xl" fw={700} c="gray.2">{totalTransactions}</Text>
-                      </Stack>
-                    </Paper>
-                    <Paper 
-                      withBorder 
-                      p="md" 
-                      radius="md"
-                      bg="dark.8"
-                      style={{ borderColor: 'rgba(255, 255, 255, 0.1)' }}
-                    >
-                      <Stack spacing={0} align="center">
-                        <Text size="sm" c="gray.4">Total Amount</Text>
-                        <Text size="xl" fw={700} c="gray.2">￥{totalAmount.toLocaleString()}</Text>
-                      </Stack>
-                    </Paper>
-                  </Group>
-                </Stack>
-              </Paper>
-            </Stack>
-          </Paper>
-
-          <Stack spacing="md">
-            {!loading && filteredTransactions.length === 0 ? (
-              <Paper 
-                shadow="sm" 
-                p="xl" 
-                radius="md" 
-                withBorder
-                bg="dark.7"
-                style={{ borderColor: 'rgba(255, 255, 255, 0.1)' }}
-              >
-                <Text ta="center" c="gray.4">No transactions found</Text>
-              </Paper>
-            ) : (
-              filteredTransactions.map((transaction) => {
-                if (!transaction) return null;
-                const {
-                  id,
-                  driverId,
-                  date,
-                  orderTotal = 0,
-                  amountReceived = 0,
-                  changeAmount = 0
-                } = transaction;
-                
-                return (
-                  <Paper 
-                    key={id || Date.now().toString()}
-                    shadow="sm" 
-                    p="md" 
-                    radius="md" 
-                    withBorder
-                    bg="dark.7"
-                    style={{ borderColor: 'rgba(255, 255, 255, 0.1)' }}
-                  >
-                    <Group position="apart" align="flex-start">
-                      <Stack spacing={4}>
-                        <Group spacing="xs">
-                          <Text fw={500} c="gray.2">Driver {driverId}</Text>
-                          <Text size="sm" c="gray.5">
-                            {dayjs(date).format('MMM D, YYYY')}
+                      <Stack gap={4}>
+                        <Group justify="space-between">
+                          <Text fw={500}>Driver {transaction.driver_id}</Text>
+                          <Text c="dimmed" size="sm">
+                            {new Date(transaction.created_at).toLocaleTimeString()}
                           </Text>
                         </Group>
-                        <Text size="sm" c="gray.5">
-                          Order Total: ￥{orderTotal.toLocaleString()}
-                        </Text>
-                        <Text size="sm" c="gray.5">
-                          Amount Received: ￥{amountReceived.toLocaleString()}
-                        </Text>
+
+                        <Group>
+                          <Stack gap={2}>
+                            <Text size="sm" c="dimmed">Bill Amount</Text>
+                            <Group gap={4}>
+                              <IconCurrencyYen size={16} />
+                              <Text>{transaction.bill_amount.toLocaleString()}</Text>
+                            </Group>
+                          </Stack>
+
+                          <Stack gap={2}>
+                            <Text size="sm" c="dimmed">Received</Text>
+                            <Group gap={4}>
+                              <IconCurrencyYen size={16} />
+                              <Text>{transaction.amount_received.toLocaleString()}</Text>
+                            </Group>
+                          </Stack>
+
+                          <Stack gap={2}>
+                            <Text size="sm" c="dimmed">Change</Text>
+                            <Group gap={4}>
+                              <IconCurrencyYen size={16} />
+                              <Text>{transaction.change_amount.toLocaleString()}</Text>
+                            </Group>
+                          </Stack>
+                        </Group>
                       </Stack>
-                      <Text 
-                        fw={700} 
-                        size="lg"
-                        c={changeAmount >= 0 ? 'teal.4' : 'red.4'}
-                      >
-                        ￥{Math.abs(changeAmount).toLocaleString()}
-                      </Text>
-                    </Group>
-                  </Paper>
-                );
-              })
-            )}
-          </Stack>
+                    </Paper>
+                  ))}
+                </Stack>
+              </Stack>
+            </Paper>
+          ))}
         </Stack>
       </Container>
     </Box>

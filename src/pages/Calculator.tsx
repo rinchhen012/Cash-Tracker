@@ -1,148 +1,118 @@
+import { Box, Stack, Title, Text, Button, NumberInput, Paper } from '@mantine/core';
+import { useNavigate, useParams } from 'react-router-dom';
+import { IconArrowLeft, IconCurrencyYen } from '@tabler/icons-react';
 import { useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { Container, Title, NumberInput, Button, Stack, Text, Group, Paper, Box } from '@mantine/core';
-import { IconCalculator, IconArrowLeft } from '@tabler/icons-react';
-import { addTransaction } from '../services/transactionService';
-import dayjs from 'dayjs';
+import { saveTransaction } from '../services/transactionService';
 
 const Calculator = () => {
-  const { driverId } = useParams();
   const navigate = useNavigate();
-  const [orderTotal, setOrderTotal] = useState<number | string>('');
-  const [amountReceived, setAmountReceived] = useState<number | string>('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { driverId } = useParams();
+  const [billAmount, setBillAmount] = useState<number | string>('');
+  const [receivedAmount, setReceivedAmount] = useState<number | string>('');
+  const [isLoading, setIsLoading] = useState(false);
 
-  const changeAmount = typeof orderTotal === 'number' && typeof amountReceived === 'number'
-    ? amountReceived - orderTotal
-    : 0;
+  const handleSave = async () => {
+    if (!billAmount || !receivedAmount || !driverId) return;
 
-  const handleSubmit = async () => {
-    if (typeof orderTotal !== 'number' || typeof amountReceived !== 'number' || !driverId) return;
-
-    setIsSubmitting(true);
+    setIsLoading(true);
     try {
-      const transaction = {
-        driverId: parseInt(driverId),
-        orderTotal,
-        amountReceived,
-        changeAmount,
-        date: dayjs().format('YYYY-MM-DD'),
-        timestamp: Date.now()
-      };
-
-      await addTransaction(transaction);
-      setOrderTotal('');
-      setAmountReceived('');
+      await saveTransaction({
+        driver_id: parseInt(driverId),
+        bill_amount: Number(billAmount),
+        amount_received: Number(receivedAmount),
+        change_amount: Number(receivedAmount) - Number(billAmount)
+      });
+      navigate('/');
     } catch (error) {
       console.error('Error saving transaction:', error);
     } finally {
-      setIsSubmitting(false);
+      setIsLoading(false);
     }
   };
 
+  const changeAmount = receivedAmount && billAmount
+    ? Number(receivedAmount) - Number(billAmount)
+    : 0;
+
   return (
-    <Box 
-      sx={(theme) => ({
+    <Box
+      style={{
         minHeight: '100vh',
-        background: theme.fn.linearGradient(45, theme.colors.dark[8], theme.colors.dark[9]),
-        padding: theme.spacing.md
-      })}
+        background: 'linear-gradient(45deg, var(--mantine-color-blue-5) 0%, var(--mantine-color-cyan-5) 100%)',
+        padding: 'var(--mantine-spacing-md)'
+      }}
     >
-      <Container size="xs" py="xl">
-        <Paper shadow="md" p="xl" radius="md" withBorder>
-          <Stack spacing="xl">
-            <Group justify="space-between" align="center">
-              <Button 
-                variant="subtle" 
-                leftSection={<IconArrowLeft size={16} />}
-                onClick={() => navigate('/')}
-                color="gray.4"
-              >
-                Back
-              </Button>
-              <Title order={2} size="h3" c="gray.3">Driver {driverId}</Title>
-            </Group>
+      <Stack gap="xl">
+        <Button
+          variant="light"
+          leftSection={<IconArrowLeft size={20} />}
+          onClick={() => navigate('/')}
+          style={{
+            '&:hover': {
+              backgroundColor: 'rgba(51, 154, 240, 0.1)'
+            }
+          }}
+        >
+          Back
+        </Button>
 
-            <Paper withBorder p="md" radius="md">
-              <Stack spacing="md">
-                <NumberInput
-                  label={<Text c="gray.3">Order Total (जम्मा)</Text>}
-                  value={orderTotal}
-                  onChange={setOrderTotal}
-                  min={0}
-                  hideControls
-                  size="xl"
-                  radius="md"
-                  placeholder="Order Total"
-                  leftSection={<Text size="sm" c="gray.5">￥</Text>}
-                  styles={(theme) => ({
-                    input: {
-                      backgroundColor: theme.colors.dark[8],
-                      color: theme.colors.gray[1],
-                      '&::placeholder': {
-                        color: theme.colors.gray[1]
-                      }
-                    }
-                  })}
-                />
+        <Stack gap="lg">
+          <Title order={2} c="gray.3">Driver {driverId}</Title>
 
-                <NumberInput
-                  label={<Text c="gray.3">Amount Received (पाएको)</Text>}
-                  value={amountReceived}
-                  onChange={setAmountReceived}
-                  min={0}
-                  hideControls
-                  size="xl"
-                  radius="md"
-                  placeholder="Amount Received"
-                  leftSection={<Text size="sm" c="gray.5">￥</Text>}
-                  styles={(theme) => ({
-                    input: {
-                      backgroundColor: theme.colors.dark[8],
-                      color: theme.colors.gray[1],
-                      '&::placeholder': {
-                        color: theme.colors.gray[1]
-                      }
-                    }
-                  })}
-                />
-              </Stack>
-            </Paper>
+          <Paper>
+            <Stack gap="md">
+              <NumberInput
+                label="Bill Amount"
+                value={billAmount}
+                onChange={setBillAmount}
+                min={0}
+                hideControls
+                size="lg"
+                radius="md"
+                placeholder="Enter bill amount"
+                leftSection={<IconCurrencyYen size={20} />}
+              />
 
-            <Paper withBorder p="md" radius="md" bg={changeAmount >= 0 ? 'dark.6' : 'red.9'}>
-              <Stack spacing="xs" align="center">
-                <Text size="lg" fw={500} c="gray.4">Change to Give (फिर्ता दिनु)</Text>
-                <Text 
-                  size="xl" 
-                  fw={700}
-                  c={changeAmount >= 0 ? 'teal.4' : 'red.4'}
-                >
-                  ￥{Math.abs(changeAmount).toLocaleString()}
-                </Text>
-              </Stack>
-            </Paper>
+              <NumberInput
+                label="Amount Received"
+                value={receivedAmount}
+                onChange={setReceivedAmount}
+                min={0}
+                hideControls
+                size="lg"
+                radius="md"
+                placeholder="Enter received amount"
+                leftSection={<IconCurrencyYen size={20} />}
+              />
 
+              <Text size="xl" fw={500}>
+                Change: ¥{changeAmount.toLocaleString()}
+              </Text>
+            </Stack>
+          </Paper>
+
+          <Stack gap="md" align="center">
             <Button
-              onClick={handleSubmit}
-              loading={isSubmitting}
-              disabled={!orderTotal || !amountReceived}
-              size="lg"
+              size="xl"
               radius="md"
-              leftSection={<IconCalculator size={20} style={{ color: 'white' }} />}
-              variant="gradient"
-              gradient={{ from: 'teal.6', to: 'blue.6' }}
-              styles={{
-                label: {
-                  color: 'white',
-                  fontWeight: 600
+              fullWidth
+              loading={isLoading}
+              disabled={!billAmount || !receivedAmount || changeAmount < 0}
+              onClick={handleSave}
+              style={{
+                background: 'linear-gradient(45deg, var(--mantine-color-blue-6) 0%, var(--mantine-color-cyan-6) 100%)',
+                color: 'white',
+                fontWeight: 600,
+                '&:hover': {
+                  background: 'linear-gradient(45deg, var(--mantine-color-blue-5) 0%, var(--mantine-color-cyan-5) 100%)'
                 }
               }}
             >
               Save Transaction
             </Button>
           </Stack>
-        </Paper>
-      </Container>
+        </Stack>
+      </Stack>
     </Box>
   );
 };
