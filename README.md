@@ -4,7 +4,7 @@ A Progressive Web App (PWA) for tracking cash change calculations for delivery d
 
 ## Features
 
-- Driver selection (1-5)
+- Driver selection (1-6)
 - Calculate change for cash on delivery
 - Transaction history with filtering
 - Daily reset with historical data preservation
