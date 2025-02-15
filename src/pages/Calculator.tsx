@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Container, Title, NumberInput, Button, Stack, Text, Group, Paper, Box } from '@mantine/core';
+import { Container, Title, NumberInput, Button, Stack, Text, Group, Paper, Box, MantineTheme } from '@mantine/core';
 import { IconCalculator, IconArrowLeft } from '@tabler/icons-react';
 import { addTransaction } from '../services/transactionService';
 import dayjs from 'dayjs';
@@ -42,7 +42,7 @@ const Calculator = () => {
 
   return (
     <Box 
-      sx={(theme) => ({
+      sx={(theme: MantineTheme) => ({
         minHeight: '100vh',
         background: theme.fn.linearGradient(45, theme.colors.dark[8], theme.colors.dark[9]),
         padding: theme.spacing.md
