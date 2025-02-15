@@ -1,8 +1,10 @@
-import { Box, Stack, Title, Text, Button } from '@mantine/core';
+import { Box, Stack, Title, Button, Group } from '@mantine/core';
 import { useNavigate } from 'react-router-dom';
+import { IconHistory } from '@tabler/icons-react';
 
 const Home = () => {
   const navigate = useNavigate();
+  const drivers = [1, 2, 3, 4, 5];
 
   return (
     <Box
@@ -13,41 +15,41 @@ const Home = () => {
       }}
     >
       <Stack gap="xl">
-        <Stack gap="xs" align="center">
-          <Title c="gold" order={1}>Namaste Narimasu</Title>
-          <Title c="blue.4" order={2}>Change Tracker</Title>
-          <Text c="gray.4" size="lg">{new Date().toLocaleDateString()}</Text>
+        <Stack gap="md" align="center">
+          <Title order={1} c="gray.3">Change Tracker</Title>
+          <Button
+            variant="light"
+            rightSection={<IconHistory size={20} />}
+            onClick={() => navigate('/history')}
+          >
+            View History
+          </Button>
         </Stack>
-
-        <Title c="gray.3" order={3}>Choose Driver</Title>
 
         <Stack gap="md">
-          {[1, 2, 3, 4].map((driverId) => (
-            <Button
-              key={driverId}
-              size="xl"
-              variant="light"
-              onClick={() => navigate(`/calculator/${driverId}`)}
-              radius="md"
-              fullWidth
-              style={{
-                flex: '1',
-                maxWidth: '100%'
-              }}
-            >
-              Driver {driverId}
-            </Button>
-          ))}
+          <Title order={2} c="gray.3">Select Driver</Title>
+          <Group gap="md">
+            {drivers.map((driver) => (
+              <Button
+                key={driver}
+                size="xl"
+                variant="light"
+                onClick={() => navigate(`/calculator/${driver}`)}
+                radius="md"
+                style={{
+                  flex: '1 1 200px',
+                  maxWidth: '200px',
+                  '@media (max-width: 480px)': {
+                    flex: '1 1 100%',
+                    maxWidth: '100%'
+                  }
+                }}
+              >
+                Driver {driver}
+              </Button>
+            ))}
+          </Group>
         </Stack>
-
-        <Button
-          variant="filled"
-          onClick={() => navigate('/history')}
-          radius="md"
-          size="lg"
-        >
-          View History
-        </Button>
       </Stack>
     </Box>
   );
