@@ -1,5 +1,14 @@
 import { supabase } from '../config/supabase';
-import { Transaction } from '../types';
+
+export interface Transaction {
+  id?: string;
+  driverId: number;
+  orderTotal: number;
+  amountReceived: number;
+  changeAmount: number;
+  date: string;
+  timestamp: number;
+}
 
 export const addTransaction = async (transaction: Omit<Transaction, 'id'>) => {
   try {
@@ -11,20 +20,20 @@ export const addTransaction = async (transaction: Omit<Transaction, 'id'>) => {
         amount_received: transaction.amountReceived,
         change_amount: transaction.changeAmount,
         date: transaction.date,
-        timestamp: Date.now()
+        timestamp: transaction.timestamp
       }])
       .select()
       .single();
 
     if (error) throw error;
-    return data.id;
+    return data;
   } catch (error) {
     console.error('Error adding transaction:', error);
     throw new Error('Failed to add transaction. Please try again.');
   }
 };
 
-export const getAllTransactions = async () => {
+export const getAllTransactions = async (): Promise<Transaction[]> => {
   try {
     const { data, error } = await supabase
       .from('transactions')
@@ -33,7 +42,6 @@ export const getAllTransactions = async () => {
 
     if (error) throw error;
     
-    // Map the database column names to our TypeScript interface
     return data.map(item => ({
       id: item.id,
       driverId: item.driver_id,
@@ -42,14 +50,14 @@ export const getAllTransactions = async () => {
       changeAmount: item.change_amount,
       date: item.date,
       timestamp: item.timestamp
-    })) as Transaction[];
+    }));
   } catch (error) {
     console.error('Error getting transactions:', error);
     throw new Error('Failed to fetch transactions. Please try again.');
   }
 };
 
-export const getTransactionsByDate = async (date: string) => {
+export const getTransactionsByDate = async (date: string): Promise<Transaction[]> => {
   try {
     const { data, error } = await supabase
       .from('transactions')
@@ -59,7 +67,6 @@ export const getTransactionsByDate = async (date: string) => {
 
     if (error) throw error;
     
-    // Map the database column names to our TypeScript interface
     return data.map(item => ({
       id: item.id,
       driverId: item.driver_id,
@@ -68,9 +75,34 @@ export const getTransactionsByDate = async (date: string) => {
       changeAmount: item.change_amount,
       date: item.date,
       timestamp: item.timestamp
-    })) as Transaction[];
+    }));
   } catch (error) {
     console.error('Error getting transactions by date:', error);
     throw new Error(`Failed to fetch transactions for date ${date}. Please try again.`);
   }
-}; 
+};
+
+export const getDriverTransactions = async (driverId: number): Promise<Transaction[]> => {
+  try {
+    const { data, error } = await supabase
+      .from('transactions')
+      .select('*')
+      .eq('driver_id', driverId)
+      .order('timestamp', { ascending: false });
+
+    if (error) throw error;
+    
+    return data.map(item => ({
+      id: item.id,
+      driverId: item.driver_id,
+      orderTotal: item.order_total,
+      amountReceived: item.amount_received,
+      changeAmount: item.change_amount,
+      date: item.date,
+      timestamp: item.timestamp
+    }));
+  } catch (error) {
+    console.error('Error getting driver transactions:', error);
+    throw new Error(`Failed to fetch transactions for driver ${driverId}. Please try again.`);
+  }
+};

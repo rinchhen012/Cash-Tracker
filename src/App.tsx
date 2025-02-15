@@ -9,17 +9,12 @@ import '@mantine/core/styles.css';
 const theme = createTheme({
   primaryColor: 'blue',
   defaultRadius: 'md',
-  colorScheme: 'dark',
-  components: {
+  defaultProps: {
     Paper: {
-      defaultProps: {
-        bg: 'dark.7'
-      }
+      bg: 'dark.7'
     },
     Button: {
-      defaultProps: {
-        color: 'blue.4'
-      }
+      color: 'blue.4'
     }
   }
 });
@@ -28,7 +23,10 @@ const App = () => {
   return (
     <ErrorBoundary>
       <MantineProvider theme={theme} defaultColorScheme="dark">
-        <Router>
+        <Router future={{ 
+          v7_startTransition: true,
+          v7_relativeSplatPath: true 
+        }}>
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/calculator/:driverId" element={<Calculator />} />

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Container, Title, NumberInput, Button, Stack, Text, Group, Paper, Box } from '@mantine/core';
+import { Container, Title, NumberInput, Button, Stack, Text, Group, Paper, Box, MantineTheme } from '@mantine/core';
 import { IconCalculator, IconArrowLeft } from '@tabler/icons-react';
 import { addTransaction } from '../services/transactionService';
 import dayjs from 'dayjs';
@@ -42,68 +42,82 @@ const Calculator = () => {
 
   return (
     <Box 
-      sx={(theme) => ({
+      style={(theme: MantineTheme) => ({
         minHeight: '100vh',
-        background: theme.fn.linearGradient(45, theme.colors.blue[5], theme.colors.cyan[5]),
+        background: theme.fn.linearGradient(45, theme.colors.dark[8], theme.colors.dark[9]),
         padding: theme.spacing.md
       })}
     >
       <Container size="xs" py="xl">
         <Paper shadow="md" p="xl" radius="md" withBorder>
-          <Stack spacing="xl">
+          <Stack gap="xl">
             <Group justify="space-between" align="center">
               <Button 
                 variant="subtle" 
                 leftSection={<IconArrowLeft size={16} />}
                 onClick={() => navigate('/')}
+                color="gray.4"
               >
                 Back
               </Button>
-              <Title order={2} size="h3">Driver {driverId}</Title>
+              <Title order={2} size="h3" c="gray.3">Driver {driverId}</Title>
             </Group>
 
             <Paper withBorder p="md" radius="md">
-              <Stack spacing="md">
+              <Stack gap="md">
                 <NumberInput
-                  label="Order Total"
+                  label={<Text c="gray.3">Order Total (जम्मा)</Text>}
                   value={orderTotal}
                   onChange={setOrderTotal}
                   min={0}
-                  precision={2}
-                  size="lg"
+                  hideControls
+                  size="xl"
                   radius="md"
-                  placeholder="Enter order total"
-                  leftSection={<Text size="sm">$</Text>}
+                  placeholder="Order Total"
+                  leftSection={<Text size="sm" c="gray.5">￥</Text>}
+                  styles={(theme) => ({
+                    input: {
+                      backgroundColor: theme.colors.dark[8],
+                      color: theme.colors.gray[1],
+                      '&::placeholder': {
+                        color: theme.colors.gray[1]
+                      }
+                    }
+                  })}
                 />
 
                 <NumberInput
-                  label="Amount Received"
+                  label={<Text c="gray.3">Amount Received (पाएको)</Text>}
                   value={amountReceived}
                   onChange={setAmountReceived}
                   min={0}
-                  precision={2}
-                  size="lg"
+                  hideControls
+                  size="xl"
                   radius="md"
-                  placeholder="Enter amount received"
-                  leftSection={<Text size="sm">$</Text>}
+                  placeholder="Amount Received"
+                  leftSection={<Text size="sm" c="gray.5">￥</Text>}
+                  styles={(theme) => ({
+                    input: {
+                      backgroundColor: theme.colors.dark[8],
+                      color: theme.colors.gray[1],
+                      '&::placeholder': {
+                        color: theme.colors.gray[1]
+                      }
+                    }
+                  })}
                 />
               </Stack>
             </Paper>
 
-            <Paper 
-              withBorder 
-              p="md" 
-              radius="md"
-              bg={changeAmount >= 0 ? 'green.0' : 'red.0'}
-            >
-              <Stack spacing="xs" align="center">
-                <Text size="lg" fw={500} c="dimmed">Change to Give:</Text>
+            <Paper withBorder p="md" radius="md" bg={changeAmount >= 0 ? 'dark.6' : 'red.9'}>
+              <Stack gap="xs" align="center">
+                <Text size="lg" fw={500} c="gray.4">Change to Give (फिर्ता दिनु)</Text>
                 <Text 
                   size="xl" 
                   fw={700}
-                  c={changeAmount >= 0 ? 'green' : 'red'}
+                  c={changeAmount >= 0 ? 'teal.4' : 'red.4'}
                 >
-                  ${Math.abs(changeAmount).toFixed(2)}
+                  ￥{Math.abs(changeAmount).toLocaleString()}
                 </Text>
               </Stack>
             </Paper>
@@ -114,9 +128,15 @@ const Calculator = () => {
               disabled={!orderTotal || !amountReceived}
               size="lg"
               radius="md"
-              leftSection={<IconCalculator size={20} />}
+              leftSection={<IconCalculator size={20} style={{ color: 'white' }} />}
               variant="gradient"
-              gradient={{ from: 'blue', to: 'cyan' }}
+              gradient={{ from: 'teal.6', to: 'blue.6' }}
+              styles={{
+                label: {
+                  color: 'white',
+                  fontWeight: 600
+                }
+              }}
             >
               Save Transaction
             </Button>
