@@ -31,7 +31,7 @@ export default defineConfig({
         display: 'standalone',
         icons: [
           {
-            src: '/icon.svg',
+            src: '/src/assets/cashback.png',
             sizes: '512x512',
             type: 'image/svg+xml',
             purpose: 'any maskable'
