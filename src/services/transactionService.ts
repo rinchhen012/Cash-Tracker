@@ -3,13 +3,17 @@ import { createClient } from '@supabase/supabase-js';
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
+if (!supabaseUrl || !supabaseKey) {
+  throw new Error('Missing Supabase environment variables');
+}
+
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 export interface Transaction {
   id: string;
   driver_id: number;
-  amount_received: number;
   bill_amount: number;
+  amount_received: number;
   change_amount: number;
   created_at: string;
 }
@@ -32,7 +36,7 @@ export const getTransactions = async () => {
     .order('created_at', { ascending: false });
 
   if (error) throw error;
-  return data;
+  return data as Transaction[];
 };
 
 export const getTransactionsByDriver = async (driverId: number) => {
@@ -43,7 +47,7 @@ export const getTransactionsByDriver = async (driverId: number) => {
     .order('created_at', { ascending: false });
 
   if (error) throw error;
-  return data;
+  return data as Transaction[];
 };
 
 export const addTransaction = async (transaction: Omit<Transaction, 'id'>) => {
