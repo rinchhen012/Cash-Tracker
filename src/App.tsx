@@ -1,5 +1,6 @@
 import { MantineProvider, createTheme } from '@mantine/core';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { SpeedInsights } from '@vercel/speed-insights/react';
 import Home from './pages/Home';
 import Calculator from './pages/Calculator';
 import History from './pages/History';
@@ -37,6 +38,7 @@ const App = () => {
             <Route path="/history" element={<History />} />
           </Routes>
         </Router>
+        <SpeedInsights />
       </MantineProvider>
     </ErrorBoundary>
   );
