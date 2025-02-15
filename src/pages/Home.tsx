@@ -1,4 +1,4 @@
-import { Container, Title, Button, Group, Stack, Text, Paper, Box, SimpleGrid } from '@mantine/core';
+import { Container, Title, Button, Group, Stack, Text, Paper, Box, SimpleGrid, MantineTheme } from '@mantine/core';
 import { useNavigate } from 'react-router-dom';
 import dayjs from 'dayjs';
 
@@ -8,11 +8,11 @@ const Home = () => {
 
   return (
     <Box 
-      sx={(theme) => ({
+      style={{
         minHeight: '100vh',
-        background: theme.fn.linearGradient(45, theme.colors.blue[9], theme.colors.cyan[9]),
-        padding: theme.spacing.md
-      })}
+        background: 'linear-gradient(45deg, var(--mantine-color-blue-9), var(--mantine-color-cyan-9))',
+        padding: 'var(--mantine-spacing-md)'
+      }}
     >
       <Container size="xs" py="xl">
         <Paper 
@@ -23,14 +23,14 @@ const Home = () => {
           bg="dark.6"
           style={{ borderColor: 'rgba(255, 255, 255, 0.1)' }}
         >
-          <Stack spacing="xl">
-            <Stack spacing="xs" align="center">
+          <Stack gap="xl">
+            <Stack gap="xs" align="center">
               <Title order={2} ta="center" style={{ color: '#FFB800' }}>Namaste Narimasu</Title>
               <Title order={1} ta="center" c="blue.4">Change Tracker</Title>
               <Text size="lg" c="gray.4" ta="center">{currentDate}</Text>
             </Stack>
             
-            <Stack spacing="lg">
+            <Stack gap="lg">
               <Title order={2} ta="center" size="h3" c="gray.3">Choose Driver</Title>
               <SimpleGrid cols={3} spacing="md">
                 {[1, 2, 3, 4, 5, 6].map((driverId) => (
@@ -39,7 +39,7 @@ const Home = () => {
                     variant="light"
                     color="blue"
                     onClick={() => navigate(`/calculator/${driverId}`)}
-                    styles={(theme) => ({
+                    styles={(theme: MantineTheme) => ({
                       root: {
                         height: '100px',
                         padding: '20px',

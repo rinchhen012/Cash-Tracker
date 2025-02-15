@@ -9,12 +9,16 @@ import '@mantine/core/styles.css';
 const theme = createTheme({
   primaryColor: 'blue',
   defaultRadius: 'md',
-  defaultProps: {
+  components: {
     Paper: {
-      bg: 'dark.7'
+      defaultProps: {
+        bg: 'dark.7'
+      }
     },
     Button: {
-      color: 'blue.4'
+      defaultProps: {
+        color: 'blue.4'
+      }
     }
   }
 });

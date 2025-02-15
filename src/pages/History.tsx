@@ -84,11 +84,11 @@ const History = () => {
   if (error) {
     return (
       <Box 
-        sx={(theme) => ({
+        style={{
           minHeight: '100vh',
-          background: theme.fn.linearGradient(45, theme.colors.dark[8], theme.colors.dark[9]),
-          padding: theme.spacing.md
-        })}
+          background: 'linear-gradient(45deg, var(--mantine-color-dark-8), var(--mantine-color-dark-9))',
+          padding: 'var(--mantine-spacing-md)'
+        }}
       >
         <Container size="md" py="xl">
           <Paper 
@@ -99,7 +99,7 @@ const History = () => {
             bg="dark.7"
             style={{ borderColor: 'rgba(255, 255, 255, 0.1)' }}
           >
-            <Stack spacing="lg">
+            <Stack gap="lg">
               <Alert 
                 color="red" 
                 title="Error Loading Transactions" 
@@ -127,11 +127,11 @@ const History = () => {
 
   return (
     <Box 
-      sx={(theme) => ({
+      style={{
         minHeight: '100vh',
-        background: theme.fn.linearGradient(45, theme.colors.dark[8], theme.colors.dark[9]),
-        padding: theme.spacing.md
-      })}
+        background: 'linear-gradient(45deg, var(--mantine-color-dark-8), var(--mantine-color-dark-9))',
+        padding: 'var(--mantine-spacing-md)'
+      }}
     >
       <Container size="md" py="xl">
         <Stack gap="lg">
@@ -222,7 +222,7 @@ const History = () => {
                       bg="dark.8"
                       style={{ borderColor: 'rgba(255, 255, 255, 0.1)' }}
                     >
-                      <Stack spacing={0} align="center">
+                      <Stack gap={0} align="center">
                         <Text size="sm" c="gray.4">Total Transactions</Text>
                         <Text size="xl" fw={700} c="gray.2">{totalTransactions}</Text>
                       </Stack>
@@ -234,7 +234,7 @@ const History = () => {
                       bg="dark.8"
                       style={{ borderColor: 'rgba(255, 255, 255, 0.1)' }}
                     >
-                      <Stack spacing={0} align="center">
+                      <Stack gap={0} align="center">
                         <Text size="sm" c="gray.4">Total Amount</Text>
                         <Text size="xl" fw={700} c="gray.2">￥{totalAmount.toLocaleString()}</Text>
                       </Stack>
@@ -245,7 +245,7 @@ const History = () => {
             </Stack>
           </Paper>
 
-          <Stack spacing="md">
+          <Stack gap="md">
             {!loading && filteredTransactions.length === 0 ? (
               <Paper 
                 shadow="sm" 
@@ -280,8 +280,8 @@ const History = () => {
                     style={{ borderColor: 'rgba(255, 255, 255, 0.1)' }}
                   >
                     <Group position="apart" align="flex-start">
-                      <Stack spacing={4}>
-                        <Group spacing="xs">
+                      <Stack gap={4}>
+                        <Group gap="xs">
                           <Text fw={500} c="gray.2">Driver {driverId}</Text>
                           <Text size="sm" c="gray.5">
                             {dayjs(date).format('MMM D, YYYY')}

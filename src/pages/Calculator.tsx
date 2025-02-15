@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Container, Title, NumberInput, Button, Stack, Text, Group, Paper, Box, MantineTheme } from '@mantine/core';
+import { Container, Title, NumberInput, Button, Stack, Text, Group, Paper, Box } from '@mantine/core';
 import { IconCalculator, IconArrowLeft } from '@tabler/icons-react';
 import { addTransaction } from '../services/transactionService';
 import dayjs from 'dayjs';
@@ -42,15 +42,15 @@ const Calculator = () => {
 
   return (
     <Box 
-      sx={(theme: MantineTheme) => ({
+      style={{
         minHeight: '100vh',
-        background: theme.fn.linearGradient(45, theme.colors.dark[8], theme.colors.dark[9]),
-        padding: theme.spacing.md
-      })}
+        background: 'linear-gradient(45deg, var(--mantine-color-dark-8), var(--mantine-color-dark-9))',
+        padding: 'var(--mantine-spacing-md)'
+      }}
     >
       <Container size="xs" py="xl">
         <Paper shadow="md" p="xl" radius="md" withBorder>
-          <Stack spacing="xl">
+          <Stack gap="xl">
             <Group justify="space-between" align="center">
               <Button 
                 variant="subtle" 
@@ -64,7 +64,7 @@ const Calculator = () => {
             </Group>
 
             <Paper withBorder p="md" radius="md">
-              <Stack spacing="md">
+              <Stack gap="md">
                 <NumberInput
                   label={<Text c="gray.3">Order Total (जम्मा)</Text>}
                   value={orderTotal}
@@ -110,7 +110,7 @@ const Calculator = () => {
             </Paper>
 
             <Paper withBorder p="md" radius="md" bg={changeAmount >= 0 ? 'dark.6' : 'red.9'}>
-              <Stack spacing="xs" align="center">
+              <Stack gap="xs" align="center">
                 <Text size="lg" fw={500} c="gray.4">Change to Give (फिर्ता दिनु)</Text>
                 <Text 
                   size="xl" 
