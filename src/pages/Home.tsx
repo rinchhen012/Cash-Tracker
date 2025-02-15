@@ -1,4 +1,4 @@
-import { Container, Title, Button, Group, Stack, Text, Paper, Box, SimpleGrid, MantineTheme } from '@mantine/core';
+import { Container, Title, Button, Stack, Text, Paper, Box, SimpleGrid, MantineTheme } from '@mantine/core';
 import { useNavigate } from 'react-router-dom';
 import dayjs from 'dayjs';
 

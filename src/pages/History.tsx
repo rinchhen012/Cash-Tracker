@@ -279,7 +279,7 @@ const History = () => {
                     bg="dark.7"
                     style={{ borderColor: 'rgba(255, 255, 255, 0.1)' }}
                   >
-                    <Group position="apart" align="flex-start">
+                    <Group justify="apart" align="flex-start">
                       <Stack gap={4}>
                         <Group gap="xs">
                           <Text fw={500} c="gray.2">Driver {driverId}</Text>

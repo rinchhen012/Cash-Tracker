@@ -1,5 +1,5 @@
 export interface Transaction {
-  id: string;
+  id?: string;
   driverId: number;
   orderTotal: number;
   amountReceived: number;
