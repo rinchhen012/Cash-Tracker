@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
-import { Container, Title, Button, Stack, Text, Select, Paper, Box, Group, Alert, LoadingOverlay, Badge, ActionIcon, Tooltip, Transition } from '@mantine/core';
+import { Container, Title, Button, Stack, Text, Select, Paper, Box, Group, Alert, LoadingOverlay, Badge, ActionIcon, Tooltip } from '@mantine/core';
 import { useNavigate } from 'react-router-dom';
 import { IconArrowLeft, IconFilter, IconWifiOff, IconCloudUpload, IconClock, IconRefresh, IconChevronDown } from '@tabler/icons-react';
 import { getAllTransactions, syncPendingTransactions } from '../services/transactionService';
