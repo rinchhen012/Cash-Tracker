@@ -1,53 +1,111 @@
 # Change Tracker
 
-A Progressive Web App (PWA) for tracking cash change calculations for delivery drivers.
+A modern, mobile-first web application designed to help delivery drivers manage cash transactions and calculate change efficiently.
+
+![App Icon](public/icon.svg)
 
 ## Features
 
-- Driver selection (1-6)
-- Calculate change for cash on delivery
-- Transaction history with filtering
-- Daily reset with historical data preservation
-- PWA support for offline access
-- Responsive design
+- **Driver Selection**: Quick access for up to 6 drivers
+- **Real-time Change Calculation**: Instantly calculate change amounts
+- **Bilingual Support**: Interface in English and Nepali
+- **Transaction History**: View and filter past transactions
+- **Offline Support**: Works without internet connection
+- **Dark Theme**: Easy on the eyes, especially at night
+- **PWA Ready**: Install as a native app on mobile devices
 
-## Setup
+## Technology Stack
+
+- **Frontend Framework**: React with TypeScript
+- **UI Components**: Mantine UI
+- **Styling**: CSS Modules
+- **Database**: Supabase
+- **State Management**: React Hooks
+- **Routing**: React Router
+- **Date Handling**: Day.js
+- **Icons**: Tabler Icons
+- **Build Tool**: Vite
+- **PWA Support**: Vite PWA Plugin
+
+## Getting Started
 
 1. Clone the repository
-2. Install dependencies:
-   ```bash
-   npm install
-   ```
-3. Create a Firebase project and enable Firestore
-4. Copy `.env.example` to `.env` and fill in your Firebase configuration values
-5. Start the development server:
-   ```bash
-   npm run dev
-   ```
 
-## Deployment to Vercel
+```bash
+git clone [repository-url]
+cd change-tracker
+```
 
-1. Create a Vercel account if you don't have one
-2. Install Vercel CLI:
-   ```bash
-   npm install -g vercel
-   ```
-3. Login to Vercel:
-   ```bash
-   vercel login
-   ```
-4. Deploy the app:
-   ```bash
-   vercel
-   ```
-5. Add your environment variables in the Vercel dashboard
+2. Install dependencies
 
-## Technologies Used
+```bash
+npm install
+```
 
-- React
-- TypeScript
-- Vite
-- Mantine UI
-- Firebase/Firestore
-- PWA
-- Vercel
+3. Set up environment variables
+   Create a `.env` file in the root directory with:
+
+```env
+VITE_SUPABASE_URL=your_supabase_url
+VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+```
+
+4. Start the development server
+
+```bash
+npm run dev
+```
+
+5. Build for production
+
+```bash
+npm run build
+```
+
+## Features in Detail
+
+### Calculator Page
+
+- Input fields for Order Total and Amount Received
+- Real-time change calculation
+- Color-coded display for positive/negative change amounts
+- Bilingual labels (English/Nepali)
+
+### History Page
+
+- View all transactions
+- Filter by driver or date
+- Display total transactions and amounts
+- Offline mode support
+- Detailed transaction cards with timestamps
+
+### Home Page
+
+- Quick driver selection (1-6)
+- Current date display
+- Easy navigation to History
+- Clean, modern interface
+
+## Mobile Optimization
+
+- Touch-optimized interface
+- Disabled zoom for better UX
+- Full-screen mode as PWA
+- Responsive design for all screen sizes
+- Large, easily tappable buttons
+
+## Performance
+
+- Optimized bundle size
+- Lazy loading of routes
+- Service worker for offline support
+- Efficient state management
+- Fast initial load time
+
+## Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
