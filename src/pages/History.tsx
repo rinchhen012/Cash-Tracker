@@ -149,11 +149,11 @@ const History = () => {
     }
   }, [refreshing, transactions]);
 
-  // Auto-refresh every 30 seconds if online
+  // Auto-refresh every minute if online
   useEffect(() => {
     if (isOffline) return;
     
-    const interval = setInterval(refreshTransactions, 30000);
+    const interval = setInterval(refreshTransactions, 60000);
     
     return () => {
       clearInterval(interval);
@@ -395,16 +395,7 @@ const History = () => {
                         input: {
                           backgroundColor: theme.colors.dark[8],
                           color: theme.colors.gray[3],
-                          borderColor: 'rgba(255, 255, 255, 0.1)',
-                          minWidth: '140px'
-                        },
-                        wrapper: {
-                          width: '100%'
-                        },
-                        placeholder: {
-                          whiteSpace: 'nowrap',
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis'
+                          borderColor: 'rgba(255, 255, 255, 0.1)'
                         }
                       })}
                     />
@@ -420,16 +411,7 @@ const History = () => {
                         input: {
                           backgroundColor: theme.colors.dark[8],
                           color: theme.colors.gray[3],
-                          borderColor: 'rgba(255, 255, 255, 0.1)',
-                          minWidth: '140px'
-                        },
-                        wrapper: {
-                          width: '100%'
-                        },
-                        placeholder: {
-                          whiteSpace: 'nowrap',
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis'
+                          borderColor: 'rgba(255, 255, 255, 0.1)'
                         }
                       })}
                     />
