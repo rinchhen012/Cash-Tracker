@@ -10,7 +10,7 @@ const Home = () => {
     <Box 
       style={{
         minHeight: '100vh',
-        background: 'linear-gradient(45deg, var(--mantine-color-blue-9), var(--mantine-color-cyan-9))',
+        background: 'linear-gradient(45deg, var(--mantine-color-dark-8), var(--mantine-color-dark-9))',
         padding: 'var(--mantine-spacing-md)'
       }}
     >

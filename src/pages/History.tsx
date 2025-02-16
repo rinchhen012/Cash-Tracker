@@ -291,7 +291,7 @@ const History = () => {
                             Time: {dayjs(timestamp).format('HH:mm')}
                           </Text>
                         </Stack>
-                        <Text size="sm" c="gray.5">
+                        <Text size="sm" c="orange.4">
                           Order Total (जम्मा): ￥{orderTotal.toLocaleString()}
                         </Text>
                         <Text size="sm" c="teal.4">
