@@ -60,6 +60,8 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,webmanifest}'],
+        navigateFallback: '/index.html',
+        navigateFallbackAllowlist: [/^\/(?!api)/],
         runtimeCaching: [
           {
             urlPattern: /^https:\/\/wlabborllliycmyoyjfi\.supabase\.co\/.*/i,

@@ -1,8 +1,16 @@
 // Cache name with version
-const CACHE_NAME = "change-tracker-v2";
+const CACHE_NAME = "change-tracker-v3";
 
 // URLs to cache initially
-const urlsToCache = ["/", "/index.html", "/icon.svg", "/manifest.json"];
+const urlsToCache = [
+  "/",
+  "/index.html",
+  "/icon.svg",
+  "/manifest.webmanifest",
+  "/icon-192.png",
+  "/icon-512.png",
+  "/apple-touch-icon.png",
+];
 
 // Install event - cache initial resources
 self.addEventListener("install", (event) => {
@@ -82,6 +90,16 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
+  // Handle navigation requests
+  if (event.request.mode === "navigate") {
+    event.respondWith(
+      fetch(event.request).catch(() => {
+        return caches.match("/index.html");
+      })
+    );
+    return;
+  }
+
   event.respondWith(
     caches.match(event.request).then((response) => {
       // Return cached response if found
@@ -124,7 +142,11 @@ self.addEventListener("fetch", (event) => {
         })
         .catch((error) => {
           console.error("Fetch failed:", error);
-          // Return a fallback response if both cache and network fail
+          // For navigation requests, return index.html
+          if (event.request.mode === "navigate") {
+            return caches.match("/index.html");
+          }
+          // Return a fallback response for other requests
           return new Response("Network error occurred", {
             status: 503,
             headers: new Headers({
