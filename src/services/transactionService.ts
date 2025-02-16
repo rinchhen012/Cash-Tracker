@@ -1,4 +1,10 @@
 import { supabase } from '../config/supabase';
+import { Transaction } from '../types';
+import { 
+  addPendingTransaction, 
+  getPendingTransactions, 
+  removePendingTransaction 
+} from './localStorageService';
 
 export interface Transaction {
   id?: string;
@@ -12,6 +18,14 @@ export interface Transaction {
 
 export const addTransaction = async (transaction: Omit<Transaction, 'id'>) => {
   try {
+    // Check if we're online
+    if (!navigator.onLine) {
+      // Store transaction locally if offline
+      addPendingTransaction(transaction);
+      return { ...transaction, id: `pending_${Date.now()}`, isPending: true };
+    }
+
+    // If online, try to save to Supabase
     const { data, error } = await supabase
       .from('transactions')
       .insert([{
@@ -29,12 +43,15 @@ export const addTransaction = async (transaction: Omit<Transaction, 'id'>) => {
     return data;
   } catch (error) {
     console.error('Error adding transaction:', error);
-    throw new Error('Failed to add transaction. Please try again.');
+    // If online save fails, store locally
+    addPendingTransaction(transaction);
+    return { ...transaction, id: `pending_${Date.now()}`, isPending: true };
   }
 };
 
 export const getAllTransactions = async (): Promise<Transaction[]> => {
   try {
+    // Get online transactions
     const { data, error } = await supabase
       .from('transactions')
       .select('*')
@@ -42,18 +59,29 @@ export const getAllTransactions = async (): Promise<Transaction[]> => {
 
     if (error) throw error;
     
-    return data.map(item => ({
+    // Transform Supabase data
+    const onlineTransactions = data.map(item => ({
       id: item.id,
       driverId: item.driver_id,
       orderTotal: item.order_total,
       amountReceived: item.amount_received,
       changeAmount: item.change_amount,
       date: item.date,
-      timestamp: item.timestamp
+      timestamp: item.timestamp,
+      isPending: false
     }));
+
+    // Get pending offline transactions
+    const pendingTransactions = getPendingTransactions();
+
+    // Combine and sort all transactions
+    return [...pendingTransactions, ...onlineTransactions]
+      .sort((a, b) => b.timestamp - a.timestamp);
+
   } catch (error) {
     console.error('Error getting transactions:', error);
-    throw new Error('Failed to fetch transactions. Please try again.');
+    // If online fetch fails, return only pending transactions
+    return getPendingTransactions();
   }
 };
 
@@ -106,3 +134,39 @@ export const getDriverTransactions = async (driverId: number): Promise<Transacti
     throw new Error(`Failed to fetch transactions for driver ${driverId}. Please try again.`);
   }
 };
+
+export const syncPendingTransactions = async () => {
+  if (!navigator.onLine) return;
+
+  const pending = getPendingTransactions();
+  
+  for (const transaction of pending) {
+    try {
+      const { error } = await supabase
+        .from('transactions')
+        .insert([{
+          driver_id: transaction.driverId,
+          order_total: transaction.orderTotal,
+          amount_received: transaction.amountReceived,
+          change_amount: transaction.changeAmount,
+          date: transaction.date,
+          timestamp: transaction.timestamp
+        }]);
+
+      if (!error) {
+        // Remove from pending if successfully synced
+        removePendingTransaction(transaction);
+      }
+    } catch (error) {
+      console.error('Error syncing transaction:', error);
+    }
+  }
+};
+
+// Add online/offline sync handlers
+if (typeof window !== 'undefined') {
+  window.addEventListener('online', () => {
+    console.log('Back online, syncing pending transactions...');
+    syncPendingTransactions();
+  });
+}
