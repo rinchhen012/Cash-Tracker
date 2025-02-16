@@ -26,7 +26,7 @@ const Home = () => {
           <Stack gap="xl">
             <Stack gap="xs" align="center">
               <Title order={2} ta="center" style={{ color: '#FFB800' }}>Namaste Narimasu</Title>
-              <Title order={1} ta="center" c="blue.4">Change Tracker</Title>
+              <Title order={1} ta="center" c="blue.4">Cash Tracker</Title>
               <Text size="lg" c="gray.4" ta="center">{currentDate}</Text>
             </Stack>
             

@@ -23,9 +23,9 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['icon.svg'],
       manifest: {
-        name: 'Change Tracker',
-        short_name: 'Change Tracker',
-        description: 'Track cash change for delivery drivers',
+        name: 'Cash Tracker',
+        short_name: 'Cash',
+        description: 'Track cash for delivery drivers',
         theme_color: '#1A1B1E',
         background_color: '#1A1B1E',
         display: 'standalone',

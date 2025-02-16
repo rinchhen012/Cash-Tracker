@@ -1,13 +1,13 @@
-# Change Tracker
+# Cash Tracker
 
-A modern, mobile-first web application designed to help delivery drivers manage cash transactions and calculate change efficiently.
+A modern, mobile-first web application designed to help delivery drivers manage cash transactions efficiently.
 
 ![App Icon](public/icon.svg)
 
 ## Features
 
 - **Driver Selection**: Quick access for up to 6 drivers
-- **Real-time Change Calculation**: Instantly calculate change amounts
+- **Real-time Cash Calculation**: Instantly calculate cash amounts
 - **Bilingual Support**: Interface in English and Nepali
 - **Transaction History**: View and filter past transactions
 - **Offline Support**: Works without internet connection
@@ -33,7 +33,7 @@ A modern, mobile-first web application designed to help delivery drivers manage 
 
 ```bash
 git clone [repository-url]
-cd change-tracker
+cd cash-tracker
 ```
 
 2. Install dependencies
@@ -67,8 +67,8 @@ npm run build
 ### Calculator Page
 
 - Input fields for Order Total and Amount Received
-- Real-time change calculation
-- Color-coded display for positive/negative change amounts
+- Real-time cash calculation
+- Color-coded display for positive/negative amounts
 - Bilingual labels (English/Nepali)
 
 ### History Page

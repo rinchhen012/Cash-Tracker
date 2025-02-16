@@ -4,17 +4,17 @@
   <rect width="512" height="512" rx="128" fill="#ED6C2A"/>
   
   <!-- Text -->
-  <text x="256" y="230" 
+  <text x="256" y="240" 
         font-family="Arial, sans-serif" 
-        font-size="96" 
+        font-size="120" 
         font-weight="bold" 
         text-anchor="middle" 
         fill="#FFFFFF">
-    Change
+    Cash
   </text>
-  <text x="256" y="330" 
+  <text x="256" y="340" 
         font-family="Arial, sans-serif" 
-        font-size="96" 
+        font-size="120" 
         font-weight="bold" 
         text-anchor="middle" 
         fill="#FFFFFF">
