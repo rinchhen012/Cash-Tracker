@@ -1,12 +1,16 @@
-import { useEffect, useState, useCallback } from 'react';
-import { Container, Title, Button, Stack, Text, Select, Paper, Box, Group, Alert, LoadingOverlay, Badge, ActionIcon, Tooltip } from '@mantine/core';
+import { useEffect, useState, useCallback, useRef } from 'react';
+import { Container, Title, Button, Stack, Text, Select, Paper, Box, Group, Alert, LoadingOverlay, Badge, ActionIcon, Tooltip, Transition } from '@mantine/core';
 import { useNavigate } from 'react-router-dom';
-import { IconArrowLeft, IconFilter, IconWifiOff, IconCloudUpload, IconClock, IconRefresh } from '@tabler/icons-react';
+import { IconArrowLeft, IconFilter, IconWifiOff, IconCloudUpload, IconClock, IconRefresh, IconChevronDown } from '@tabler/icons-react';
 import { getAllTransactions, syncPendingTransactions } from '../services/transactionService';
 import { getPendingTransactions } from '../services/localStorageService';
 import { Transaction } from '../types';
 import dayjs from 'dayjs';
 import { useViewportSize } from '@mantine/hooks';
+
+// Constants for pull-to-refresh
+const PULL_THRESHOLD = 80; // pixels
+const MAX_PULL_DISTANCE = 120; // pixels
 
 const History = () => {
   const navigate = useNavigate();
@@ -21,6 +25,12 @@ const History = () => {
   const [refreshing, setRefreshing] = useState(false);
   const [lastRefresh, setLastRefresh] = useState<Date>(new Date());
   const { height: _ } = useViewportSize();
+  const [pullDistance, setPullDistance] = useState(0);
+  const [isPulling, setIsPulling] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const startYRef = useRef(0);
+  const lastYRef = useRef(0);
+  const isRefreshingRef = useRef(false);
 
   // Monitor online/offline status and pending transactions
   useEffect(() => {
@@ -135,43 +145,82 @@ const History = () => {
     return () => clearInterval(interval);
   }, [isOffline, refreshTransactions]);
 
-  // Pull to refresh setup
+  // Pull to refresh setup with improved handling
   useEffect(() => {
-    let startY = 0;
-    let pulling = false;
+    const container = containerRef.current;
+    if (!container) return;
 
     const handleTouchStart = (e: TouchEvent) => {
-      const scrollTop = document.documentElement.scrollTop;
+      if (isRefreshingRef.current) return;
+      
+      const scrollTop = container.scrollTop;
       if (scrollTop <= 0) {
-        startY = e.touches[0].clientY;
-        pulling = true;
+        startYRef.current = e.touches[0].clientY;
+        lastYRef.current = startYRef.current;
+        setIsPulling(true);
       }
     };
 
     const handleTouchMove = (e: TouchEvent) => {
-      if (!pulling) return;
-      const y = e.touches[0].clientY;
-      const delta = y - startY;
-      if (delta > 50) {
-        pulling = false;
-        refreshTransactions();
+      if (!isPulling || isRefreshingRef.current) return;
+
+      const currentY = e.touches[0].clientY;
+      const delta = currentY - lastYRef.current;
+      lastYRef.current = currentY;
+
+      if (container.scrollTop <= 0) {
+        e.preventDefault(); // Prevent scroll when pulling
+        
+        setPullDistance(prev => {
+          const newDistance = Math.max(0, Math.min(prev + delta, MAX_PULL_DISTANCE));
+          return newDistance;
+        });
       }
     };
 
     const handleTouchEnd = () => {
-      pulling = false;
+      if (!isPulling || isRefreshingRef.current) return;
+
+      if (pullDistance >= PULL_THRESHOLD) {
+        isRefreshingRef.current = true;
+        refreshTransactions().finally(() => {
+          isRefreshingRef.current = false;
+          setPullDistance(0);
+          setIsPulling(false);
+        });
+      } else {
+        setPullDistance(0);
+        setIsPulling(false);
+      }
     };
 
-    document.addEventListener('touchstart', handleTouchStart);
-    document.addEventListener('touchmove', handleTouchMove);
-    document.addEventListener('touchend', handleTouchEnd);
+    container.addEventListener('touchstart', handleTouchStart, { passive: false });
+    container.addEventListener('touchmove', handleTouchMove, { passive: false });
+    container.addEventListener('touchend', handleTouchEnd);
 
     return () => {
-      document.removeEventListener('touchstart', handleTouchStart);
-      document.removeEventListener('touchmove', handleTouchMove);
-      document.removeEventListener('touchend', handleTouchEnd);
+      container.removeEventListener('touchstart', handleTouchStart);
+      container.removeEventListener('touchmove', handleTouchMove);
+      container.removeEventListener('touchend', handleTouchEnd);
     };
-  }, [refreshTransactions]);
+  }, [isPulling, refreshTransactions]);
+
+  // Pull-to-refresh indicator styles
+  const pullIndicatorStyle = {
+    position: 'fixed' as const,
+    top: 0,
+    left: 0,
+    right: 0,
+    height: `${pullDistance}px`,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    transition: pullDistance === 0 ? 'height 0.2s ease-out' : 'none',
+    pointerEvents: 'none' as const,
+    zIndex: 1000,
+  };
+
+  const iconRotation = Math.min((pullDistance / PULL_THRESHOLD) * 180, 180);
 
   // Group transactions by date
   const groupedTransactions = filteredTransactions.reduce((groups, transaction) => {
@@ -250,9 +299,26 @@ const History = () => {
       style={{
         minHeight: '100vh',
         background: 'linear-gradient(45deg, var(--mantine-color-dark-8), var(--mantine-color-dark-9))',
-        padding: 'var(--mantine-spacing-md)'
+        padding: 'var(--mantine-spacing-md)',
+        position: 'relative',
+        overflow: 'hidden'
       }}
+      ref={containerRef}
     >
+      {/* Pull-to-refresh indicator */}
+      {pullDistance > 0 && (
+        <Box style={pullIndicatorStyle}>
+          <IconChevronDown
+            size={24}
+            style={{
+              transform: `rotate(${iconRotation}deg)`,
+              transition: 'transform 0.2s ease-out',
+              color: pullDistance >= PULL_THRESHOLD ? 'var(--mantine-color-blue-5)' : 'var(--mantine-color-gray-5)'
+            }}
+          />
+        </Box>
+      )}
+
       <Container size="md" py="xl">
         <Stack gap="lg">
           <LoadingOverlay visible={loading || refreshing} overlayProps={{ blur: 2 }} />
