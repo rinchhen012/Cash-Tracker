@@ -1,5 +1,4 @@
 import { supabase } from '../config/supabase';
-import type { Transaction as TransactionType } from '../types';
 import { 
   addPendingTransaction, 
   getPendingTransactions, 
