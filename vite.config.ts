@@ -22,6 +22,13 @@ export default defineConfig({
     VitePWA({
       registerType: 'autoUpdate',
       includeAssets: ['icon.svg'],
+      injectRegister: 'auto',
+      workbox: {
+        globPatterns: ['**/*.{js,css,html,ico,png,svg}'],
+        cleanupOutdatedCaches: true,
+        skipWaiting: true,
+        clientsClaim: true
+      },
       manifest: {
         name: 'Cash Tracker',
         short_name: 'Cash',
@@ -29,33 +36,34 @@ export default defineConfig({
         theme_color: '#1A1B1E',
         background_color: '#1A1B1E',
         display: 'standalone',
+        scope: '/',
         icons: [
           {
-            src: '/icon.svg',
+            src: 'icon.svg',
             sizes: '512x512',
             type: 'image/svg+xml',
             purpose: 'any maskable'
           },
           {
-            src: '/icon-192.png',
+            src: 'icon-192.png',
             sizes: '192x192',
             type: 'image/png',
             purpose: 'any'
           },
           {
-            src: '/icon-512.png',
+            src: 'icon-512.png',
             sizes: '512x512',
             type: 'image/png',
             purpose: 'any'
           },
           {
-            src: '/apple-touch-icon.png',
+            src: 'apple-touch-icon.png',
             sizes: '180x180',
-            type: 'image/png',
-            purpose: 'apple touch icon'
+            type: 'image/png'
           }
         ],
-        start_url: '/'
+        start_url: '/',
+        orientation: 'portrait'
       }
     })
   ]
