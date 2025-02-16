@@ -55,7 +55,7 @@ const Calculator = () => {
               variant="light" 
               leftSection={<IconArrowLeft size={24} />}
               onClick={() => navigate('/')}
-              color="gray.4"
+              color="blue"
               size="xl"
               radius="xl"
               fullWidth
@@ -65,7 +65,7 @@ const Calculator = () => {
                   fontSize: '1.2rem',
                   fontWeight: 600,
                   '&:hover': {
-                    backgroundColor: theme.colors.dark[4]
+                    backgroundColor: theme.colors.blue[7]
                   }
                 }
               })}
