@@ -6,6 +6,7 @@ export interface Transaction {
   changeAmount: number;
   date: string;
   timestamp: number;
+  isPending?: boolean;
 }
 
 export interface Driver {

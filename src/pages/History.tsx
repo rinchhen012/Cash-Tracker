@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from 'react';
-import { Container, Title, Button, Stack, Text, Select, Paper, Box, Group, Alert, LoadingOverlay, Badge, ActionIcon, Tooltip, Transition } from '@mantine/core';
+import { Container, Title, Button, Stack, Text, Select, Paper, Box, Group, Alert, LoadingOverlay, Badge, ActionIcon, Tooltip } from '@mantine/core';
 import { useNavigate } from 'react-router-dom';
-import { IconArrowLeft, IconFilter, IconWifiOff, IconCloudUpload, IconCheck, IconClock, IconRefresh } from '@tabler/icons-react';
+import { IconArrowLeft, IconFilter, IconWifiOff, IconCloudUpload, IconClock, IconRefresh } from '@tabler/icons-react';
 import { getAllTransactions, syncPendingTransactions } from '../services/transactionService';
 import { getPendingTransactions } from '../services/localStorageService';
 import { Transaction } from '../types';
@@ -20,7 +20,7 @@ const History = () => {
   const [pendingCount, setPendingCount] = useState(0);
   const [refreshing, setRefreshing] = useState(false);
   const [lastRefresh, setLastRefresh] = useState<Date>(new Date());
-  const { height } = useViewportSize();
+  const { height: _ } = useViewportSize();
 
   // Monitor online/offline status and pending transactions
   useEffect(() => {
