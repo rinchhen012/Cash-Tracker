@@ -3,6 +3,7 @@ import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
 
 export default defineConfig({
+  base: '/',
   server: {
     port: 5175,
     strictPort: true,
@@ -80,5 +81,17 @@ export default defineConfig({
         ]
       }
     })
-  ]
+  ],
+  build: {
+    sourcemap: true,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'react-vendor': ['react', 'react-dom', 'react-router-dom'],
+          'mantine-vendor': ['@mantine/core', '@mantine/hooks'],
+          'supabase-vendor': ['@supabase/supabase-js']
+        }
+      }
+    }
+  }
 }); 
