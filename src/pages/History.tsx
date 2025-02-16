@@ -21,6 +21,8 @@ const History = () => {
   const [refreshing, setRefreshing] = useState(false);
   const [lastRefresh, setLastRefresh] = useState<Date>(new Date());
   const [hasLoadedAll, setHasLoadedAll] = useState(false);
+  const [availableDates, setAvailableDates] = useState<string[]>([]);
+  const [loadingDates, setLoadingDates] = useState(true);
 
   // Monitor online/offline status and pending transactions
   useEffect(() => {
@@ -57,16 +59,40 @@ const History = () => {
     }
   };
 
+  // Load all available dates
+  useEffect(() => {
+    const loadAllDates = async () => {
+      try {
+        setLoadingDates(true);
+        const allTransactions = await getAllTransactions();
+        const dates = [...new Set(allTransactions.map(t => t.date))].sort().reverse();
+        setAvailableDates(dates);
+      } catch (error) {
+        console.error('Error loading dates:', error);
+      } finally {
+        setLoadingDates(false);
+      }
+    };
+
+    loadAllDates();
+  }, []);
+
   // Load initial transactions (today only)
   useEffect(() => {
     const loadTransactions = async () => {
       try {
         setLoading(true);
         setError(null);
-        const data = await getTodayTransactions();
+        
+        // If a specific date is selected, load transactions for that date
+        // Otherwise, load today's transactions
+        const data = selectedDate 
+          ? await getAllTransactions(selectedDate, selectedDate)
+          : await getTodayTransactions();
+
         if (Array.isArray(data)) {
           setTransactions(data);
-          setHasLoadedAll(false);
+          setHasLoadedAll(selectedDate ? true : false);
         } else {
           setTransactions([]);
           setError('Invalid data format received');
@@ -81,11 +107,11 @@ const History = () => {
     };
 
     loadTransactions();
-  }, []);
+  }, [selectedDate]); // Add selectedDate as a dependency
 
-  // Load more transactions
+  // Load more transactions (only if no date filter is active)
   const loadMoreTransactions = async () => {
-    if (loadingMore || hasLoadedAll) return;
+    if (loadingMore || hasLoadedAll || selectedDate) return;
     
     setLoadingMore(true);
     try {
@@ -113,33 +139,41 @@ const History = () => {
     }
   };
 
-  // Refresh function (refreshes only today's transactions)
+  // Update refresh function to respect the date filter
   const refreshTransactions = useCallback(async () => {
     if (refreshing) return;
     setRefreshing(true);
     try {
-      const todayData = await getTodayTransactions();
-      if (Array.isArray(todayData)) {
-        // Get today's date
-        const today = dayjs().format('YYYY-MM-DD');
-        
-        // Remove any existing today's transactions to prevent duplicates
-        const olderTransactions = transactions.filter(t => t.date !== today);
-        
-        // Add new today's transactions
-        const updatedTransactions = [...todayData, ...olderTransactions];
-        
-        // Remove any duplicates by id
-        const uniqueTransactions = updatedTransactions.reduce((acc, current) => {
-          const x = acc.find(item => item.id === current.id);
-          if (!x) {
-            return acc.concat([current]);
-          } else {
-            return acc;
-          }
-        }, [] as Transaction[]);
-        
-        setTransactions(uniqueTransactions);
+      // If a specific date is selected, refresh that date's transactions
+      // Otherwise, refresh today's transactions
+      const refreshData = selectedDate 
+        ? await getAllTransactions(selectedDate, selectedDate)
+        : await getTodayTransactions();
+
+      if (Array.isArray(refreshData)) {
+        if (selectedDate) {
+          // For a specific date, replace all transactions
+          setTransactions(refreshData);
+        } else {
+          // For today's transactions, merge with existing older transactions
+          const today = dayjs().format('YYYY-MM-DD');
+          const olderTransactions = transactions.filter(t => t.date !== today);
+          
+          // Add new today's transactions
+          const updatedTransactions = [...refreshData, ...olderTransactions];
+          
+          // Remove any duplicates by id
+          const uniqueTransactions = updatedTransactions.reduce((acc, current) => {
+            const x = acc.find(item => item.id === current.id);
+            if (!x) {
+              return acc.concat([current]);
+            } else {
+              return acc;
+            }
+          }, [] as Transaction[]);
+          
+          setTransactions(uniqueTransactions);
+        }
         setLastRefresh(new Date());
       }
     } catch (error) {
@@ -147,7 +181,7 @@ const History = () => {
     } finally {
       setRefreshing(false);
     }
-  }, [refreshing, transactions]);
+  }, [refreshing, transactions, selectedDate]);
 
   // Auto-refresh every minute if online
   useEffect(() => {
@@ -401,12 +435,13 @@ const History = () => {
                     />
                     <Select
                       label={<Text c="gray.3">Filter by Date</Text>}
-                      placeholder="All Dates"
-                      data={uniqueDates}
+                      placeholder={loadingDates ? "Loading dates..." : "All Dates"}
+                      data={availableDates}
                       value={selectedDate}
                       onChange={setSelectedDate}
                       clearable
                       leftSection={<IconFilter size={16} />}
+                      disabled={loadingDates}
                       styles={(theme) => ({
                         input: {
                           backgroundColor: theme.colors.dark[8],
