@@ -296,17 +296,16 @@ const History = () => {
 
   return (
     <Box 
+      className="touch-scroll"
       style={{
-        height: '100vh',
+        minHeight: '100%',
         background: 'linear-gradient(45deg, var(--mantine-color-dark-8), var(--mantine-color-dark-9))',
         padding: 'var(--mantine-spacing-md)',
-        position: 'fixed',
+        position: 'absolute',
         top: 0,
         left: 0,
         right: 0,
-        bottom: 0,
-        overflowY: 'auto',
-        WebkitOverflowScrolling: 'touch'
+        bottom: 0
       }}
       ref={containerRef}
     >

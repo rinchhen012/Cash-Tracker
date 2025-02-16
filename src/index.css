@@ -2,19 +2,16 @@
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  touch-action: manipulation;
-  -webkit-touch-callout: none;
-  -webkit-user-select: none;
-  user-select: none;
 }
 
 html,
 body {
-  margin: 0;
-  padding: 0;
   height: 100%;
   width: 100%;
-  overscroll-behavior: none;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  position: fixed;
   background-color: var(--mantine-color-dark-8);
 }
 
@@ -23,14 +20,22 @@ body {
     "Helvetica Neue", Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  position: fixed;
-  overflow: hidden;
 }
 
 #root {
   height: 100%;
-  overflow-y: auto;
+  width: 100%;
+  position: fixed;
+  top: 0;
+  left: 0;
+  overflow: hidden;
+}
+
+/* Touch handling */
+.touch-scroll {
   -webkit-overflow-scrolling: touch;
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
   touch-action: pan-y;
 }
 
