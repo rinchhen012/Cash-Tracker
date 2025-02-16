@@ -33,7 +33,7 @@ export const supabase = createClient(supabaseUrl, supabaseKey, {
 // Add a health check function
 export const checkSupabaseConnection = async () => {
   try {
-    const { data, error } = await supabase
+    const { error } = await supabase
       .from('transactions')
       .select('count')
       .limit(1)
