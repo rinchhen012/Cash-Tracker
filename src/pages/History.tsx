@@ -263,10 +263,10 @@ const History = () => {
               title="Offline Mode" 
               icon={<IconWifiOff size={16} />}
               styles={{
-                root: { backgroundColor: 'rgba(255, 184, 0, 0.1)' }}
+                root: { backgroundColor: 'rgba(255, 184, 0, 0.1)' }
               }}
             >
-              You are currently offline. Transactions will be synced when you're back online.
+              You are currently offline. Transactions will be synced when you&apos;re back online.
               {pendingCount > 0 && (
                 <Text size="sm" mt="xs" c="yellow.4">
                   {pendingCount} transaction{pendingCount !== 1 ? 's' : ''} pending sync
@@ -441,7 +441,7 @@ const History = () => {
             ) : (
               sortedDates.map(date => (
                 <Stack key={date} gap="xs">
-                  <Group position="apart" px="md">
+                  <Group justify="space-between" px="md">
                     <Text fw={700} c="gray.4">
                       {dayjs(date).format('MMM D, YYYY')}
                       {date === dayjs().format('YYYY-MM-DD') && (
@@ -479,9 +479,6 @@ const History = () => {
                           transition: 'transform 0.2s ease, opacity 0.2s ease',
                           cursor: 'pointer'
                         }}
-                        onClick={() => {
-                          // Add transaction detail view later
-                        }}
                       >
                         {isPending && (
                           <Tooltip label="Pending Sync" position="top-end">
@@ -499,7 +496,7 @@ const History = () => {
                             </Badge>
                           </Tooltip>
                         )}
-                        <Group justify="apart" align="flex-start">
+                        <Group justify="space-between" align="flex-start">
                           <Stack gap={4}>
                             <Group align="center" gap="xs">
                               <Text fw={500} c="gray.2">Driver {driverId}</Text>
@@ -508,15 +505,15 @@ const History = () => {
                               </Text>
                             </Group>
                             <Stack gap={8}>
-                              <Group position="apart">
+                              <Group justify="space-between">
                                 <Text size="sm" c="orange.4">Order Total (जम्मा):</Text>
                                 <Text size="sm" fw={500} c="orange.4">￥{orderTotal.toLocaleString()}</Text>
                               </Group>
-                              <Group position="apart">
+                              <Group justify="space-between">
                                 <Text size="sm" c="teal.4">Amount Received (पाएको):</Text>
                                 <Text size="sm" fw={500} c="teal.4">￥{amountReceived.toLocaleString()}</Text>
                               </Group>
-                              <Group position="apart">
+                              <Group justify="space-between">
                                 <Text size="sm" c="red.4">Change to Give (फिर्ता दिनु):</Text>
                                 <Text size="sm" fw={500} c="red.4">￥{Math.abs(changeAmount).toLocaleString()}</Text>
                               </Group>
