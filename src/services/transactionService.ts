@@ -1,10 +1,20 @@
-import { supabase } from '../lib/supabase';
-import type { Transaction } from '../types';
+import { supabase } from '../config/supabase';
+import type { Transaction as TransactionType } from '../types';
 import { 
   addPendingTransaction, 
   getPendingTransactions, 
   removePendingTransaction 
 } from './localStorageService';
+
+interface DatabaseTransaction {
+  id: string;
+  driver_id: number;
+  order_total: number;
+  amount_received: number;
+  change_amount: number;
+  date: string;
+  timestamp: number;
+}
 
 export interface Transaction {
   id?: string;
@@ -14,6 +24,7 @@ export interface Transaction {
   changeAmount: number;
   date: string;
   timestamp: number;
+  isPending?: boolean;
 }
 
 export const addTransaction = async (transaction: Omit<Transaction, 'id'>) => {
@@ -60,7 +71,7 @@ export const getAllTransactions = async (): Promise<Transaction[]> => {
     if (error) throw error;
     
     // Transform Supabase data
-    const onlineTransactions = data.map(item => ({
+    const onlineTransactions = (data as DatabaseTransaction[]).map(item => ({
       id: item.id,
       driverId: item.driver_id,
       orderTotal: item.order_total,
@@ -95,14 +106,15 @@ export const getTransactionsByDate = async (date: string): Promise<Transaction[]
 
     if (error) throw error;
     
-    return data.map(item => ({
+    return (data as DatabaseTransaction[]).map(item => ({
       id: item.id,
       driverId: item.driver_id,
       orderTotal: item.order_total,
       amountReceived: item.amount_received,
       changeAmount: item.change_amount,
       date: item.date,
-      timestamp: item.timestamp
+      timestamp: item.timestamp,
+      isPending: false
     }));
   } catch (error) {
     console.error('Error getting transactions by date:', error);
@@ -120,14 +132,15 @@ export const getDriverTransactions = async (driverId: number): Promise<Transacti
 
     if (error) throw error;
     
-    return data.map(item => ({
+    return (data as DatabaseTransaction[]).map(item => ({
       id: item.id,
       driverId: item.driver_id,
       orderTotal: item.order_total,
       amountReceived: item.amount_received,
       changeAmount: item.change_amount,
       date: item.date,
-      timestamp: item.timestamp
+      timestamp: item.timestamp,
+      isPending: false
     }));
   } catch (error) {
     console.error('Error getting driver transactions:', error);
