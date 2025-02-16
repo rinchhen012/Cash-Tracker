@@ -179,10 +179,10 @@ const History = () => {
                 {error}
               </Alert>
               <Button 
-                variant="light"
+                variant="filled" 
                 leftSection={<IconArrowLeft size={24} />}
                 onClick={() => navigate('/')}
-                color="blue"
+                style={{ backgroundColor: '#1864AB', color: 'white' }}
                 size="xl"
                 radius="xl"
                 fullWidth
@@ -192,8 +192,11 @@ const History = () => {
                     fontSize: '1.2rem',
                     fontWeight: 600,
                     '&:hover': {
-                      backgroundColor: theme.colors.blue[7]
+                      backgroundColor: theme.colors.blue[8]
                     }
+                  },
+                  section: {
+                    color: 'white'
                   }
                 })}
               >
@@ -274,10 +277,10 @@ const History = () => {
             <Stack gap="lg">
               <Group justify="space-between" align="center">
                 <Button 
-                  variant="light" 
+                  variant="filled" 
                   leftSection={<IconArrowLeft size={24} />}
                   onClick={() => navigate('/')}
-                  color="blue"
+                  style={{ backgroundColor: '#1864AB', color: 'white' }}
                   size="xl"
                   radius="xl"
                   fullWidth
@@ -287,8 +290,11 @@ const History = () => {
                       fontSize: '1.2rem',
                       fontWeight: 600,
                       '&:hover': {
-                        backgroundColor: theme.colors.blue[7]
+                        backgroundColor: theme.colors.blue[8]
                       }
+                    },
+                    section: {
+                      color: 'white'
                     }
                   })}
                 >

@@ -52,10 +52,10 @@ const Calculator = () => {
         <Paper shadow="md" p="xl" radius="md" withBorder>
           <Stack gap="xl">
             <Button 
-              variant="light" 
+              variant="filled" 
               leftSection={<IconArrowLeft size={24} />}
               onClick={() => navigate('/')}
-              color="blue"
+              style={{ backgroundColor: '#1864AB', color: 'white' }}
               size="xl"
               radius="xl"
               fullWidth
@@ -65,8 +65,11 @@ const Calculator = () => {
                   fontSize: '1.2rem',
                   fontWeight: 600,
                   '&:hover': {
-                    backgroundColor: theme.colors.blue[7]
+                    backgroundColor: theme.colors.blue[8]
                   }
+                },
+                section: {
+                  color: 'white'
                 }
               })}
             >

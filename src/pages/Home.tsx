@@ -1,7 +1,6 @@
 import { Container, Title, Button, Stack, Text, Paper, Box, SimpleGrid, MantineTheme } from '@mantine/core';
 import { useNavigate } from 'react-router-dom';
 import dayjs from 'dayjs';
-import { IconArrowLeft } from '@tabler/icons-react';
 
 const Home = () => {
   const navigate = useNavigate();
@@ -74,28 +73,6 @@ const Home = () => {
               radius="md"
             >
               View History
-            </Button>
-
-            <Button 
-              variant="light" 
-              leftSection={<IconArrowLeft size={24} />}
-              onClick={() => navigate('/')}
-              color="blue"
-              size="xl"
-              radius="xl"
-              fullWidth
-              h={60}
-              styles={(theme) => ({
-                root: {
-                  fontSize: '1.2rem',
-                  fontWeight: 600,
-                  '&:hover': {
-                    backgroundColor: theme.colors.blue[7]
-                  }
-                }
-              })}
-            >
-              Back
             </Button>
           </Stack>
         </Paper>
