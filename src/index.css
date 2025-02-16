@@ -2,6 +2,10 @@
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+  touch-action: manipulation;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
 }
 
 html,
@@ -15,6 +19,8 @@ body {
   overscroll-behavior: none;
   -webkit-overflow-scrolling: none;
   touch-action: none;
+  -ms-content-zooming: none;
+  -ms-touch-action: none;
 }
 
 body {
@@ -29,4 +35,13 @@ body {
   height: 100%;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
+  touch-action: pan-y;
+}
+
+/* Enable text selection only in input fields */
+input,
+textarea {
+  -webkit-user-select: text;
+  user-select: text;
+  touch-action: manipulation;
 }
