@@ -1,20 +1,23 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
   <!-- Background -->
-  <rect width="512" height="512" rx="128" fill="#0066FF"/>
+  <rect width="512" height="512" rx="128" fill="#ED6C2A"/>
   
-  <!-- Money/Change Icon -->
-  <g transform="translate(96, 96) scale(1.25)">
-    <!-- Coin Stack -->
-    <circle cx="160" cy="180" r="120" fill="#FFFFFF" opacity="0.2"/>
-    <circle cx="160" cy="160" r="120" fill="#FFFFFF" opacity="0.3"/>
-    <circle cx="160" cy="140" r="120" fill="#FFFFFF"/>
-    
-    <!-- ¥ Symbol -->
-    <path d="M160 80 L220 160 M160 80 L100 160 M140 160 H180 M140 200 H180 M160 160 V240" 
-          stroke="#0066FF" 
-          stroke-width="24" 
-          stroke-linecap="round" 
-          stroke-linejoin="round"/>
-  </g>
+  <!-- Text -->
+  <text x="256" y="230" 
+        font-family="Arial, sans-serif" 
+        font-size="96" 
+        font-weight="bold" 
+        text-anchor="middle" 
+        fill="#FFFFFF">
+    Change
+  </text>
+  <text x="256" y="330" 
+        font-family="Arial, sans-serif" 
+        font-size="96" 
+        font-weight="bold" 
+        text-anchor="middle" 
+        fill="#FFFFFF">
+    Tracker
+  </text>
 </svg> 
