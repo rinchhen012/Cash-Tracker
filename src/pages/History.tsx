@@ -282,26 +282,25 @@ const History = () => {
                   >
                     <Group justify="apart" align="flex-start">
                       <Stack gap={4}>
-                        <Group gap="xs">
-                          <Text fw={500} c="gray.2">Driver {driverId}</Text>
+                        <Text fw={500} c="gray.2">Driver {driverId}</Text>
+                        <Stack gap={0}>
                           <Text size="sm" c="gray.5">
-                            {dayjs(date).format('MMM D, YYYY')} • {dayjs(timestamp).format('HH:mm')}
+                            {dayjs(date).format('MMM D, YYYY')}
                           </Text>
-                        </Group>
+                          <Text size="sm" c="gray.5">
+                            Time: {dayjs(timestamp).format('HH:mm')}
+                          </Text>
+                        </Stack>
                         <Text size="sm" c="gray.5">
-                          Order Total: ￥{orderTotal.toLocaleString()}
+                          Order Total (जम्मा): ￥{orderTotal.toLocaleString()}
                         </Text>
                         <Text size="sm" c="gray.5">
-                          Amount Received: ￥{amountReceived.toLocaleString()}
+                          Amount Received (पाएको): ￥{amountReceived.toLocaleString()}
+                        </Text>
+                        <Text size="sm" c={changeAmount >= 0 ? 'teal.4' : 'red.4'}>
+                          Change to Give (फिर्ता दिनु): ￥{Math.abs(changeAmount).toLocaleString()}
                         </Text>
                       </Stack>
-                      <Text 
-                        fw={700} 
-                        size="lg"
-                        c={changeAmount >= 0 ? 'teal.4' : 'red.4'}
-                      >
-                        ￥{Math.abs(changeAmount).toLocaleString()}
-                      </Text>
                     </Group>
                   </Paper>
                 );
