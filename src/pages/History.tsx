@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { Container, Title, Button, Stack, Text, Select, Paper, Box, Group, Alert, LoadingOverlay, Badge, ActionIcon, Tooltip } from '@mantine/core';
 import { useNavigate } from 'react-router-dom';
 import { IconArrowLeft, IconFilter, IconWifiOff, IconCloudUpload, IconClock, IconRefresh, IconChevronDown } from '@tabler/icons-react';
@@ -114,16 +114,32 @@ const History = () => {
   };
 
   // Refresh function (refreshes only today's transactions)
-  const refreshTransactions = async () => {
+  const refreshTransactions = useCallback(async () => {
     if (refreshing) return;
     setRefreshing(true);
     try {
       const todayData = await getTodayTransactions();
       if (Array.isArray(todayData)) {
-        // Preserve older transactions, update only today's
+        // Get today's date
         const today = dayjs().format('YYYY-MM-DD');
+        
+        // Remove any existing today's transactions to prevent duplicates
         const olderTransactions = transactions.filter(t => t.date !== today);
-        setTransactions([...todayData, ...olderTransactions]);
+        
+        // Add new today's transactions
+        const updatedTransactions = [...todayData, ...olderTransactions];
+        
+        // Remove any duplicates by id
+        const uniqueTransactions = updatedTransactions.reduce((acc, current) => {
+          const x = acc.find(item => item.id === current.id);
+          if (!x) {
+            return acc.concat([current]);
+          } else {
+            return acc;
+          }
+        }, [] as Transaction[]);
+        
+        setTransactions(uniqueTransactions);
         setLastRefresh(new Date());
       }
     } catch (error) {
@@ -131,14 +147,18 @@ const History = () => {
     } finally {
       setRefreshing(false);
     }
-  };
+  }, [refreshing, transactions]);
 
   // Auto-refresh every 30 seconds if online
   useEffect(() => {
     if (isOffline) return;
+    
     const interval = setInterval(refreshTransactions, 30000);
-    return () => clearInterval(interval);
-  }, [isOffline]);
+    
+    return () => {
+      clearInterval(interval);
+    };
+  }, [isOffline, refreshTransactions]);
 
   // Safely get unique dates
   const uniqueDates = Array.isArray(transactions) 
