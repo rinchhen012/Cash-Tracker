@@ -297,15 +297,19 @@ const History = () => {
   return (
     <Box 
       style={{
-        minHeight: '100vh',
+        height: '100vh',
         background: 'linear-gradient(45deg, var(--mantine-color-dark-8), var(--mantine-color-dark-9))',
         padding: 'var(--mantine-spacing-md)',
-        position: 'relative',
-        overflow: 'hidden'
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        overflowY: 'auto',
+        WebkitOverflowScrolling: 'touch'
       }}
       ref={containerRef}
     >
-      {/* Pull-to-refresh indicator */}
       {pullDistance > 0 && (
         <Box style={pullIndicatorStyle}>
           <IconChevronDown
