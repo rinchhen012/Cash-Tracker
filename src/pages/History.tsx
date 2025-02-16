@@ -391,11 +391,17 @@ const History = () => {
                       onChange={setSelectedDriver}
                       clearable
                       leftSection={<IconFilter size={16} />}
+                      size="md"
                       styles={(theme) => ({
                         input: {
                           backgroundColor: theme.colors.dark[8],
                           color: theme.colors.gray[3],
-                          borderColor: 'rgba(255, 255, 255, 0.1)'
+                          borderColor: 'rgba(255, 255, 255, 0.1)',
+                          minHeight: '42px',
+                          paddingRight: '30px'
+                        },
+                        rightSection: {
+                          width: '30px'
                         }
                       })}
                     />
@@ -407,11 +413,17 @@ const History = () => {
                       onChange={setSelectedDate}
                       clearable
                       leftSection={<IconFilter size={16} />}
+                      size="md"
                       styles={(theme) => ({
                         input: {
                           backgroundColor: theme.colors.dark[8],
                           color: theme.colors.gray[3],
-                          borderColor: 'rgba(255, 255, 255, 0.1)'
+                          borderColor: 'rgba(255, 255, 255, 0.1)',
+                          minHeight: '42px',
+                          paddingRight: '30px'
+                        },
+                        rightSection: {
+                          width: '30px'
                         }
                       })}
                     />
