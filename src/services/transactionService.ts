@@ -87,17 +87,19 @@ export const addTransaction = async (transaction: BaseTransaction): Promise<Tran
   }
 };
 
-export const getAllTransactions = async (retryAttempt = 0): Promise<Transaction[]> => {
+export const getTodayTransactions = async (retryAttempt = 0): Promise<Transaction[]> => {
   try {
+    const today = new Date().toISOString().split('T')[0];
     const { data, error } = await supabase
       .from('transactions')
       .select('*')
+      .eq('date', today)
       .order('timestamp', { ascending: false });
 
-    if (error) throw new DatabaseError('Failed to fetch transactions', error);
+    if (error) throw new DatabaseError('Failed to fetch today\'s transactions', error);
     
     const onlineTransactions = (data as DatabaseTransaction[]).map(transformFromDatabase);
-    const pendingTransactions = getPendingTransactions();
+    const pendingTransactions = getPendingTransactions().filter(t => t.date === today);
 
     return [...pendingTransactions, ...onlineTransactions]
       .sort((a, b) => b.timestamp - a.timestamp);
@@ -105,7 +107,45 @@ export const getAllTransactions = async (retryAttempt = 0): Promise<Transaction[
   } catch (error) {
     if (retryAttempt < MAX_RETRY_ATTEMPTS && navigator.onLine) {
       await sleep(RETRY_DELAY * (retryAttempt + 1));
-      return getAllTransactions(retryAttempt + 1);
+      return getTodayTransactions(retryAttempt + 1);
+    }
+
+    console.error('Error getting today\'s transactions:', error);
+    return getPendingTransactions().filter(t => t.date === new Date().toISOString().split('T')[0]);
+  }
+};
+
+export const getAllTransactions = async (startDate?: string, endDate?: string, retryAttempt = 0): Promise<Transaction[]> => {
+  try {
+    let query = supabase
+      .from('transactions')
+      .select('*')
+      .order('timestamp', { ascending: false });
+
+    if (startDate) {
+      query = query.gte('date', startDate);
+    }
+    if (endDate) {
+      query = query.lte('date', endDate);
+    }
+
+    const { data, error } = await query;
+
+    if (error) throw new DatabaseError('Failed to fetch transactions', error);
+    
+    const onlineTransactions = (data as DatabaseTransaction[]).map(transformFromDatabase);
+    const pendingTransactions = getPendingTransactions().filter(t => {
+      if (!startDate && !endDate) return true;
+      return (!startDate || t.date >= startDate) && (!endDate || t.date <= endDate);
+    });
+
+    return [...pendingTransactions, ...onlineTransactions]
+      .sort((a, b) => b.timestamp - a.timestamp);
+
+  } catch (error) {
+    if (retryAttempt < MAX_RETRY_ATTEMPTS && navigator.onLine) {
+      await sleep(RETRY_DELAY * (retryAttempt + 1));
+      return getAllTransactions(startDate, endDate, retryAttempt + 1);
     }
 
     console.error('Error getting transactions:', error);

@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { Container, Title, Button, Stack, Text, Select, Paper, Box, Group, Alert, LoadingOverlay, Badge, ActionIcon, Tooltip } from '@mantine/core';
 import { useNavigate } from 'react-router-dom';
-import { IconArrowLeft, IconFilter, IconWifiOff, IconCloudUpload, IconClock, IconRefresh } from '@tabler/icons-react';
-import { getAllTransactions, syncPendingTransactions } from '../services/transactionService';
+import { IconArrowLeft, IconFilter, IconWifiOff, IconCloudUpload, IconClock, IconRefresh, IconChevronDown } from '@tabler/icons-react';
+import { getAllTransactions, getTodayTransactions, syncPendingTransactions } from '../services/transactionService';
 import { getPendingTransactions } from '../services/localStorageService';
 import { Transaction } from '../types';
 import dayjs from 'dayjs';
@@ -11,6 +11,7 @@ const History = () => {
   const navigate = useNavigate();
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [syncing, setSyncing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isOffline, setIsOffline] = useState(!navigator.onLine);
@@ -19,6 +20,7 @@ const History = () => {
   const [pendingCount, setPendingCount] = useState(0);
   const [refreshing, setRefreshing] = useState(false);
   const [lastRefresh, setLastRefresh] = useState<Date>(new Date());
+  const [hasLoadedAll, setHasLoadedAll] = useState(false);
 
   // Monitor online/offline status and pending transactions
   useEffect(() => {
@@ -29,7 +31,6 @@ const History = () => {
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
     
-    // Check pending count initially and every 1 second
     checkPending();
     const interval = setInterval(checkPending, 1000);
 
@@ -47,8 +48,7 @@ const History = () => {
     setSyncing(true);
     try {
       await syncPendingTransactions();
-      const updatedTransactions = await getAllTransactions();
-      setTransactions(updatedTransactions);
+      await refreshTransactions();
       setPendingCount(getPendingTransactions().length);
     } catch (error) {
       console.error('Sync failed:', error);
@@ -57,15 +57,16 @@ const History = () => {
     }
   };
 
-  // Load transactions
+  // Load initial transactions (today only)
   useEffect(() => {
     const loadTransactions = async () => {
       try {
         setLoading(true);
         setError(null);
-        const data = await getAllTransactions();
+        const data = await getTodayTransactions();
         if (Array.isArray(data)) {
           setTransactions(data);
+          setHasLoadedAll(false);
         } else {
           setTransactions([]);
           setError('Invalid data format received');
@@ -82,14 +83,47 @@ const History = () => {
     loadTransactions();
   }, []);
 
-  // Refresh function
+  // Load more transactions
+  const loadMoreTransactions = async () => {
+    if (loadingMore || hasLoadedAll) return;
+    
+    setLoadingMore(true);
+    try {
+      // Get the oldest transaction date
+      const oldestTransaction = [...transactions].sort((a, b) => 
+        dayjs(a.date).valueOf() - dayjs(b.date).valueOf()
+      )[0];
+      
+      if (!oldestTransaction) return;
+      
+      // Load transactions from the previous day
+      const targetDate = dayjs(oldestTransaction.date).subtract(1, 'day').format('YYYY-MM-DD');
+      
+      const olderTransactions = await getAllTransactions(targetDate, targetDate);
+      
+      if (olderTransactions.length === 0) {
+        setHasLoadedAll(true);
+      } else {
+        setTransactions(prev => [...prev, ...olderTransactions]);
+      }
+    } catch (error) {
+      console.error('Error loading more transactions:', error);
+    } finally {
+      setLoadingMore(false);
+    }
+  };
+
+  // Refresh function (refreshes only today's transactions)
   const refreshTransactions = async () => {
     if (refreshing) return;
     setRefreshing(true);
     try {
-      const data = await getAllTransactions();
-      if (Array.isArray(data)) {
-        setTransactions(data);
+      const todayData = await getTodayTransactions();
+      if (Array.isArray(todayData)) {
+        // Preserve older transactions, update only today's
+        const today = dayjs().format('YYYY-MM-DD');
+        const olderTransactions = transactions.filter(t => t.date !== today);
+        setTransactions([...todayData, ...olderTransactions]);
         setLastRefresh(new Date());
       }
     } catch (error) {
@@ -495,6 +529,25 @@ const History = () => {
               ))
             )}
           </Stack>
+          
+          {!loading && !hasLoadedAll && (
+            <Button
+              variant="light"
+              color="gray"
+              onClick={loadMoreTransactions}
+              loading={loadingMore}
+              leftSection={<IconChevronDown size={16} />}
+              disabled={isOffline}
+            >
+              {loadingMore ? 'Loading...' : 'Load Previous Day'}
+            </Button>
+          )}
+          
+          {hasLoadedAll && (
+            <Text c="gray.5" ta="center" size="sm">
+              No more transactions to load
+            </Text>
+          )}
         </Stack>
       </Container>
     </Box>
