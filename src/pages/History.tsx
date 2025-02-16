@@ -194,11 +194,6 @@ const History = () => {
     };
   }, [isOffline, refreshTransactions]);
 
-  // Safely get unique dates
-  const uniqueDates = Array.isArray(transactions) 
-    ? [...new Set(transactions.map(t => t.date))].sort().reverse()
-    : [];
-
   const driverOptions = [1, 2, 3, 4, 5, 6].map(id => ({ 
     value: id.toString(), 
     label: `Driver ${id}` 
