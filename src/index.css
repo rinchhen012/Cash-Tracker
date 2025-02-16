@@ -10,8 +10,6 @@ body {
   width: 100%;
   margin: 0;
   padding: 0;
-  overflow: hidden;
-  position: fixed;
   background-color: var(--mantine-color-dark-8);
 }
 
@@ -25,18 +23,7 @@ body {
 #root {
   height: 100%;
   width: 100%;
-  position: fixed;
-  top: 0;
-  left: 0;
-  overflow: hidden;
-}
-
-/* Touch handling */
-.touch-scroll {
-  -webkit-overflow-scrolling: touch;
   overflow-y: auto;
-  overscroll-behavior-y: contain;
-  touch-action: pan-y;
 }
 
 /* Enable text selection only in input fields */

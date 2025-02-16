@@ -1,16 +1,11 @@
-import { useEffect, useState, useCallback, useRef } from 'react';
+import { useEffect, useState } from 'react';
 import { Container, Title, Button, Stack, Text, Select, Paper, Box, Group, Alert, LoadingOverlay, Badge, ActionIcon, Tooltip } from '@mantine/core';
 import { useNavigate } from 'react-router-dom';
-import { IconArrowLeft, IconFilter, IconWifiOff, IconCloudUpload, IconClock, IconRefresh, IconChevronDown } from '@tabler/icons-react';
+import { IconArrowLeft, IconFilter, IconWifiOff, IconCloudUpload, IconClock, IconRefresh } from '@tabler/icons-react';
 import { getAllTransactions, syncPendingTransactions } from '../services/transactionService';
 import { getPendingTransactions } from '../services/localStorageService';
 import { Transaction } from '../types';
 import dayjs from 'dayjs';
-import { useViewportSize } from '@mantine/hooks';
-
-// Constants for pull-to-refresh
-const PULL_THRESHOLD = 80; // pixels
-const MAX_PULL_DISTANCE = 120; // pixels
 
 const History = () => {
   const navigate = useNavigate();
@@ -24,13 +19,6 @@ const History = () => {
   const [pendingCount, setPendingCount] = useState(0);
   const [refreshing, setRefreshing] = useState(false);
   const [lastRefresh, setLastRefresh] = useState<Date>(new Date());
-  const { height: _ } = useViewportSize();
-  const [pullDistance, setPullDistance] = useState(0);
-  const [isPulling, setIsPulling] = useState(false);
-  const containerRef = useRef<HTMLDivElement>(null);
-  const startYRef = useRef(0);
-  const lastYRef = useRef(0);
-  const isRefreshingRef = useRef(false);
 
   // Monitor online/offline status and pending transactions
   useEffect(() => {
@@ -85,7 +73,7 @@ const History = () => {
       } catch (error: any) {
         console.error('Error loading transactions:', error);
         setError(error.message || 'Failed to load transactions');
-        setTransactions([]); // Reset transactions on error
+        setTransactions([]);
       } finally {
         setLoading(false);
       }
@@ -93,6 +81,30 @@ const History = () => {
 
     loadTransactions();
   }, []);
+
+  // Refresh function
+  const refreshTransactions = async () => {
+    if (refreshing) return;
+    setRefreshing(true);
+    try {
+      const data = await getAllTransactions();
+      if (Array.isArray(data)) {
+        setTransactions(data);
+        setLastRefresh(new Date());
+      }
+    } catch (error) {
+      console.error('Error refreshing:', error);
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
+  // Auto-refresh every 30 seconds if online
+  useEffect(() => {
+    if (isOffline) return;
+    const interval = setInterval(refreshTransactions, 30000);
+    return () => clearInterval(interval);
+  }, [isOffline]);
 
   // Safely get unique dates
   const uniqueDates = Array.isArray(transactions) 
@@ -121,107 +133,6 @@ const History = () => {
   }, 0);
   const totalTransactions = filteredTransactions.length;
 
-  // Refresh function
-  const refreshTransactions = useCallback(async () => {
-    if (refreshing) return;
-    setRefreshing(true);
-    try {
-      const data = await getAllTransactions();
-      if (Array.isArray(data)) {
-        setTransactions(data);
-        setLastRefresh(new Date());
-      }
-    } catch (error) {
-      console.error('Error refreshing:', error);
-    } finally {
-      setRefreshing(false);
-    }
-  }, [refreshing]);
-
-  // Auto-refresh every 30 seconds if online
-  useEffect(() => {
-    if (isOffline) return;
-    const interval = setInterval(refreshTransactions, 30000);
-    return () => clearInterval(interval);
-  }, [isOffline, refreshTransactions]);
-
-  // Pull to refresh setup with improved handling
-  useEffect(() => {
-    const container = containerRef.current;
-    if (!container) return;
-
-    const handleTouchStart = (e: TouchEvent) => {
-      if (isRefreshingRef.current) return;
-      
-      const scrollTop = container.scrollTop;
-      if (scrollTop <= 0) {
-        startYRef.current = e.touches[0].clientY;
-        lastYRef.current = startYRef.current;
-        setIsPulling(true);
-      }
-    };
-
-    const handleTouchMove = (e: TouchEvent) => {
-      if (!isPulling || isRefreshingRef.current) return;
-
-      const currentY = e.touches[0].clientY;
-      const delta = currentY - lastYRef.current;
-      lastYRef.current = currentY;
-
-      if (container.scrollTop <= 0) {
-        e.preventDefault(); // Prevent scroll when pulling
-        
-        setPullDistance(prev => {
-          const newDistance = Math.max(0, Math.min(prev + delta, MAX_PULL_DISTANCE));
-          return newDistance;
-        });
-      }
-    };
-
-    const handleTouchEnd = () => {
-      if (!isPulling || isRefreshingRef.current) return;
-
-      if (pullDistance >= PULL_THRESHOLD) {
-        isRefreshingRef.current = true;
-        refreshTransactions().finally(() => {
-          isRefreshingRef.current = false;
-          setPullDistance(0);
-          setIsPulling(false);
-        });
-      } else {
-        setPullDistance(0);
-        setIsPulling(false);
-      }
-    };
-
-    container.addEventListener('touchstart', handleTouchStart, { passive: false });
-    container.addEventListener('touchmove', handleTouchMove, { passive: false });
-    container.addEventListener('touchend', handleTouchEnd);
-
-    return () => {
-      container.removeEventListener('touchstart', handleTouchStart);
-      container.removeEventListener('touchmove', handleTouchMove);
-      container.removeEventListener('touchend', handleTouchEnd);
-    };
-  }, [isPulling, refreshTransactions]);
-
-  // Pull-to-refresh indicator styles
-  const pullIndicatorStyle = {
-    position: 'fixed' as const,
-    top: 0,
-    left: 0,
-    right: 0,
-    height: `${pullDistance}px`,
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    transition: pullDistance === 0 ? 'height 0.2s ease-out' : 'none',
-    pointerEvents: 'none' as const,
-    zIndex: 1000,
-  };
-
-  const iconRotation = Math.min((pullDistance / PULL_THRESHOLD) * 180, 180);
-
   // Group transactions by date
   const groupedTransactions = filteredTransactions.reduce((groups, transaction) => {
     const date = transaction.date;
@@ -241,9 +152,10 @@ const History = () => {
     return (
       <Box 
         style={{
-          minHeight: '100vh',
+          height: '100%',
           background: 'linear-gradient(45deg, var(--mantine-color-dark-8), var(--mantine-color-dark-9))',
-          padding: 'var(--mantine-spacing-md)'
+          padding: 'var(--mantine-spacing-md)',
+          overflowY: 'auto'
         }}
       >
         <Container size="md" py="xl">
@@ -296,32 +208,13 @@ const History = () => {
 
   return (
     <Box 
-      className="touch-scroll"
       style={{
-        minHeight: '100%',
+        height: '100%',
         background: 'linear-gradient(45deg, var(--mantine-color-dark-8), var(--mantine-color-dark-9))',
         padding: 'var(--mantine-spacing-md)',
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0
+        overflowY: 'auto'
       }}
-      ref={containerRef}
     >
-      {pullDistance > 0 && (
-        <Box style={pullIndicatorStyle}>
-          <IconChevronDown
-            size={24}
-            style={{
-              transform: `rotate(${iconRotation}deg)`,
-              transition: 'transform 0.2s ease-out',
-              color: pullDistance >= PULL_THRESHOLD ? 'var(--mantine-color-blue-5)' : 'var(--mantine-color-gray-5)'
-            }}
-          />
-        </Box>
-      )}
-
       <Container size="md" py="xl">
         <Stack gap="lg">
           <LoadingOverlay visible={loading || refreshing} overlayProps={{ blur: 2 }} />
