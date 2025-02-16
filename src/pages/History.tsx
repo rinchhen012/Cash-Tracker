@@ -294,10 +294,10 @@ const History = () => {
                         <Text size="sm" c="gray.5">
                           Order Total (जम्मा): ￥{orderTotal.toLocaleString()}
                         </Text>
-                        <Text size="sm" c="gray.5">
+                        <Text size="sm" c="teal.4">
                           Amount Received (पाएको): ￥{amountReceived.toLocaleString()}
                         </Text>
-                        <Text size="sm" c={changeAmount >= 0 ? 'teal.4' : 'red.4'}>
+                        <Text size="sm" c="red.4">
                           Change to Give (फिर्ता दिनु): ￥{Math.abs(changeAmount).toLocaleString()}
                         </Text>
                       </Stack>
