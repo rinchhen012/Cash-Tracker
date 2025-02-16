@@ -266,7 +266,8 @@ const History = () => {
                   date,
                   orderTotal = 0,
                   amountReceived = 0,
-                  changeAmount = 0
+                  changeAmount = 0,
+                  timestamp
                 } = transaction;
                 
                 return (
@@ -284,7 +285,7 @@ const History = () => {
                         <Group gap="xs">
                           <Text fw={500} c="gray.2">Driver {driverId}</Text>
                           <Text size="sm" c="gray.5">
-                            {dayjs(date).format('MMM D, YYYY')}
+                            {dayjs(date).format('MMM D, YYYY')} • {dayjs(timestamp).format('HH:mm')}
                           </Text>
                         </Group>
                         <Text size="sm" c="gray.5">
