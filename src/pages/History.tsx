@@ -110,13 +110,26 @@ const History = () => {
               >
                 {error}
               </Alert>
-              <Button
+              <Button 
                 variant="light"
+                leftSection={<IconArrowLeft size={24} />}
                 onClick={() => navigate('/')}
-                leftSection={<IconArrowLeft size={16} />}
                 color="gray.4"
+                size="xl"
+                radius="xl"
+                fullWidth
+                h={60}
+                styles={(theme) => ({
+                  root: {
+                    fontSize: '1.2rem',
+                    fontWeight: 600,
+                    '&:hover': {
+                      backgroundColor: theme.colors.dark[4]
+                    }
+                  }
+                })}
               >
-                Back to Home
+                Back
               </Button>
             </Stack>
           </Paper>

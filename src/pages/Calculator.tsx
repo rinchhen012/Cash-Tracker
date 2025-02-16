@@ -51,17 +51,29 @@ const Calculator = () => {
       <Container size="xs" py="xl">
         <Paper shadow="md" p="xl" radius="md" withBorder>
           <Stack gap="xl">
-            <Group justify="space-between" align="center">
-              <Button 
-                variant="subtle" 
-                leftSection={<IconArrowLeft size={16} />}
-                onClick={() => navigate('/')}
-                color="gray.4"
-              >
-                Back
-              </Button>
-              <Title order={2} size="h3" c="gray.3">Driver {driverId}</Title>
-            </Group>
+            <Button 
+              variant="light" 
+              leftSection={<IconArrowLeft size={24} />}
+              onClick={() => navigate('/')}
+              color="gray.4"
+              size="xl"
+              radius="xl"
+              fullWidth
+              h={60}
+              styles={(theme) => ({
+                root: {
+                  fontSize: '1.2rem',
+                  fontWeight: 600,
+                  '&:hover': {
+                    backgroundColor: theme.colors.dark[4]
+                  }
+                }
+              })}
+            >
+              Back
+            </Button>
+
+            <Title order={2} size="h3" c="gray.3">Driver {driverId}</Title>
 
             <Paper withBorder p="md" radius="md">
               <Stack gap="md">
