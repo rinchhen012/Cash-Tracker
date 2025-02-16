@@ -1,13 +1,10 @@
 import { MantineProvider, createTheme } from '@mantine/core';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { SpeedInsights } from '@vercel/speed-insights/react';
-import { useEffect, useState } from 'react';
 import Home from './pages/Home';
 import Calculator from './pages/Calculator';
 import History from './pages/History';
 import ErrorBoundary from './components/ErrorBoundary';
-import LoadingScreen from './components/LoadingScreen';
-import { checkSupabaseConnection } from './config/supabase';
 import '@mantine/core/styles.css';
 
 const theme = createTheme({
@@ -54,77 +51,6 @@ const theme = createTheme({
 });
 
 const App = () => {
-  const [isLoading, setIsLoading] = useState(true);
-  const [connectionError, setConnectionError] = useState<string | null>(null);
-
-  useEffect(() => {
-    const initializeApp = async () => {
-      try {
-        const isConnected = await checkSupabaseConnection();
-        if (!isConnected) {
-          setConnectionError('Unable to connect to the database. Please check your internet connection and try again.');
-        }
-      } catch (error) {
-        console.error('App initialization error:', error);
-        setConnectionError('An error occurred while initializing the app.');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    initializeApp();
-  }, []);
-
-  if (isLoading) {
-    return <LoadingScreen />;
-  }
-
-  if (connectionError) {
-    return (
-      <MantineProvider theme={theme} defaultColorScheme="dark">
-        <ErrorBoundary>
-          <div style={{ 
-            minHeight: '100vh',
-            background: 'linear-gradient(45deg, var(--mantine-color-dark-8), var(--mantine-color-dark-9))',
-            padding: 'var(--mantine-spacing-md)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center'
-          }}>
-            <div style={{
-              maxWidth: '400px',
-              padding: '2rem',
-              backgroundColor: 'var(--mantine-color-dark-7)',
-              borderRadius: 'var(--mantine-radius-md)',
-              border: '1px solid var(--mantine-color-dark-4)'
-            }}>
-              <h2 style={{ color: 'var(--mantine-color-red-6)', marginBottom: '1rem' }}>
-                Connection Error
-              </h2>
-              <p style={{ color: 'var(--mantine-color-gray-4)' }}>
-                {connectionError}
-              </p>
-              <button
-                onClick={() => window.location.reload()}
-                style={{
-                  marginTop: '1rem',
-                  padding: '0.5rem 1rem',
-                  backgroundColor: 'var(--mantine-color-blue-7)',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: 'var(--mantine-radius-sm)',
-                  cursor: 'pointer'
-                }}
-              >
-                Retry Connection
-              </button>
-            </div>
-          </div>
-        </ErrorBoundary>
-      </MantineProvider>
-    );
-  }
-
   return (
     <ErrorBoundary>
       <MantineProvider theme={theme} defaultColorScheme="dark">

@@ -120,14 +120,10 @@ const History = () => {
     try {
       const todayData = await getTodayTransactions();
       if (Array.isArray(todayData)) {
-        // Get today's date
+        // Preserve older transactions, update only today's
         const today = dayjs().format('YYYY-MM-DD');
-        
-        // Remove all of today's transactions and add the fresh data
         const olderTransactions = transactions.filter(t => t.date !== today);
-        
-        // Set transactions with new data
-        setTransactions([...todayData, ...olderTransactions].sort((a, b) => b.timestamp - a.timestamp));
+        setTransactions([...todayData, ...olderTransactions]);
         setLastRefresh(new Date());
       }
     } catch (error) {

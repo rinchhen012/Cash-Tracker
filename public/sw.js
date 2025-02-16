@@ -1,16 +1,8 @@
 // Cache name with version
-const CACHE_NAME = "change-tracker-v3";
+const CACHE_NAME = "change-tracker-v2";
 
 // URLs to cache initially
-const urlsToCache = [
-  "/",
-  "/index.html",
-  "/icon.svg",
-  "/manifest.webmanifest",
-  "/icon-192.png",
-  "/icon-512.png",
-  "/apple-touch-icon.png",
-];
+const urlsToCache = ["/", "/index.html", "/icon.svg", "/manifest.json"];
 
 // Install event - cache initial resources
 self.addEventListener("install", (event) => {
@@ -26,30 +18,18 @@ self.addEventListener("install", (event) => {
 // Activate event - cleanup old caches
 self.addEventListener("activate", (event) => {
   event.waitUntil(
-    Promise.all([
-      // Clean up old caches
-      caches.keys().then((cacheNames) => {
-        return Promise.all(
-          cacheNames.map((cacheName) => {
-            if (cacheName !== CACHE_NAME) {
-              return caches.delete(cacheName);
-            }
-          })
-        );
-      }),
-      // Take control of all pages immediately
-      clients.claim(),
-    ])
+    caches.keys().then((cacheNames) => {
+      return Promise.all(
+        cacheNames.map((cacheName) => {
+          if (cacheName !== CACHE_NAME) {
+            return caches.delete(cacheName);
+          }
+        })
+      );
+    })
   );
-});
-
-// Message event - handle messages from the client
-self.addEventListener("message", (event) => {
-  // Ensure we have a port to respond to
-  if (event.ports && event.ports[0]) {
-    // Respond to the message
-    event.ports[0].postMessage({ received: true });
-  }
+  // Take control of all pages immediately
+  event.waitUntil(clients.claim());
 });
 
 // Fetch event - serve from cache or network
@@ -90,16 +70,6 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // Handle navigation requests
-  if (event.request.mode === "navigate") {
-    event.respondWith(
-      fetch(event.request).catch(() => {
-        return caches.match("/index.html");
-      })
-    );
-    return;
-  }
-
   event.respondWith(
     caches.match(event.request).then((response) => {
       // Return cached response if found
@@ -123,18 +93,9 @@ self.addEventListener("fetch", (event) => {
             // Clone the response because it can only be used once
             const responseToCache = response.clone();
 
-            // Cache the fetched response and notify clients
+            // Cache the fetched response
             caches.open(CACHE_NAME).then((cache) => {
               cache.put(event.request, responseToCache);
-              // Notify all clients about the cache update
-              self.clients.matchAll().then((clients) => {
-                clients.forEach((client) => {
-                  client.postMessage({
-                    type: "CACHE_UPDATED",
-                    url: event.request.url,
-                  });
-                });
-              });
             });
           }
 
@@ -142,11 +103,7 @@ self.addEventListener("fetch", (event) => {
         })
         .catch((error) => {
           console.error("Fetch failed:", error);
-          // For navigation requests, return index.html
-          if (event.request.mode === "navigate") {
-            return caches.match("/index.html");
-          }
-          // Return a fallback response for other requests
+          // Return a fallback response if both cache and network fail
           return new Response("Network error occurred", {
             status: 503,
             headers: new Headers({
