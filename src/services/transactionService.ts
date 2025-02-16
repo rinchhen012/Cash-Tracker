@@ -30,13 +30,22 @@ const validateTransaction = (transaction: BaseTransaction): void => {
   }
 };
 
-const transformToDatabase = (transaction: BaseTransaction): Omit<DatabaseTransaction, 'id'> => ({
-  ...transaction,
-  driver_id: transaction.driverId,
-  order_total: transaction.orderTotal,
-  amount_received: transaction.amountReceived,
-  change_amount: transaction.changeAmount,
-});
+const transformToDatabase = (transaction: Transaction): any => {
+  const { id, isPending, ...dbTransaction } = transaction;
+  
+  // Ensure all required fields are present and properly formatted
+  const transformed = {
+    driver_id: Number(dbTransaction.driverId),
+    order_total: Number(dbTransaction.orderTotal),
+    amount_received: Number(dbTransaction.amountReceived),
+    change_amount: Number(dbTransaction.changeAmount),
+    date: dbTransaction.date || new Date().toISOString().split('T')[0],
+    timestamp: dbTransaction.timestamp || Date.now()
+  };
+  
+  console.log('Transformed transaction:', transformed);
+  return transformed;
+};
 
 const transformFromDatabase = (item: DatabaseTransaction): Transaction => ({
   id: item.id,
@@ -143,22 +152,48 @@ export const getDriverTransactions = async (driverId: number): Promise<Transacti
 };
 
 export const syncPendingTransactions = async (): Promise<void> => {
-  if (!navigator.onLine) return;
+  if (!navigator.onLine) {
+    throw new NetworkError('Cannot sync while offline');
+  }
 
   const pending = getPendingTransactions();
+  console.log('Pending transactions to sync:', pending.length);
+  
+  if (pending.length === 0) return;
+
   const results: { success: boolean; transaction: Transaction; error?: Error }[] = [];
   
   for (const transaction of pending) {
     try {
+      console.log('Syncing transaction:', transaction);
+      
+      // Transform and validate
       const dbTransaction = transformToDatabase(transaction);
-      const { error } = await supabase
+      console.log('Transformed transaction:', dbTransaction);
+      
+      // Insert into database
+      const { data, error } = await supabase
         .from('transactions')
-        .insert([dbTransaction]);
+        .insert([dbTransaction])
+        .select()
+        .single();
 
-      if (error) throw new DatabaseError('Failed to sync transaction', error);
+      if (error) {
+        console.error('Database error:', error);
+        throw new DatabaseError('Failed to sync transaction', error);
+      }
+      
+      if (!data) {
+        console.error('No data returned from database');
+        throw new DatabaseError('No data returned after syncing');
+      }
 
+      console.log('Successfully synced transaction:', data);
+      
+      // Remove from pending storage
       removePendingTransaction(transaction);
       results.push({ success: true, transaction });
+      
     } catch (error) {
       console.error('Error syncing transaction:', error);
       results.push({ 
@@ -178,6 +213,7 @@ export const syncPendingTransactions = async (): Promise<void> => {
   if (failureCount > 0) {
     const failedTransactions = results.filter(r => !r.success);
     console.error('Failed transactions:', failedTransactions);
+    throw new Error(`Failed to sync ${failureCount} transactions`);
   }
 };
 
