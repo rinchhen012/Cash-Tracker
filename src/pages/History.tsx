@@ -419,7 +419,7 @@ const History = () => {
                     >
                       <Stack gap={0} align="center">
                         <Text size="sm" c="gray.4">Total Amount</Text>
-                        <Text size="xl" fw={700} c="gray.2">￥{totalAmount.toLocaleString()}</Text>
+                        <Text size="xl" fw={700} c="orange.4">￥{totalAmount.toLocaleString()}</Text>
                       </Stack>
                     </Paper>
                   </Group>
