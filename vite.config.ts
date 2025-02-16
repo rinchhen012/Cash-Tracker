@@ -26,8 +26,8 @@ export default defineConfig({
         name: 'Change Tracker',
         short_name: 'Change Tracker',
         description: 'Track cash change for delivery drivers',
-        theme_color: '#ED6C2A',
-        background_color: '#ffffff',
+        theme_color: '#1A1B1E',
+        background_color: '#1A1B1E',
         display: 'standalone',
         icons: [
           {
