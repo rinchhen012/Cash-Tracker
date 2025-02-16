@@ -18,18 +18,30 @@ self.addEventListener("install", (event) => {
 // Activate event - cleanup old caches
 self.addEventListener("activate", (event) => {
   event.waitUntil(
-    caches.keys().then((cacheNames) => {
-      return Promise.all(
-        cacheNames.map((cacheName) => {
-          if (cacheName !== CACHE_NAME) {
-            return caches.delete(cacheName);
-          }
-        })
-      );
-    })
+    Promise.all([
+      // Clean up old caches
+      caches.keys().then((cacheNames) => {
+        return Promise.all(
+          cacheNames.map((cacheName) => {
+            if (cacheName !== CACHE_NAME) {
+              return caches.delete(cacheName);
+            }
+          })
+        );
+      }),
+      // Take control of all pages immediately
+      clients.claim(),
+    ])
   );
-  // Take control of all pages immediately
-  event.waitUntil(clients.claim());
+});
+
+// Message event - handle messages from the client
+self.addEventListener("message", (event) => {
+  // Ensure we have a port to respond to
+  if (event.ports && event.ports[0]) {
+    // Respond to the message
+    event.ports[0].postMessage({ received: true });
+  }
 });
 
 // Fetch event - serve from cache or network
@@ -93,9 +105,18 @@ self.addEventListener("fetch", (event) => {
             // Clone the response because it can only be used once
             const responseToCache = response.clone();
 
-            // Cache the fetched response
+            // Cache the fetched response and notify clients
             caches.open(CACHE_NAME).then((cache) => {
               cache.put(event.request, responseToCache);
+              // Notify all clients about the cache update
+              self.clients.matchAll().then((clients) => {
+                clients.forEach((client) => {
+                  client.postMessage({
+                    type: "CACHE_UPDATED",
+                    url: event.request.url,
+                  });
+                });
+              });
             });
           }
 

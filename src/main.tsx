@@ -16,26 +16,52 @@ ReactDOM.createRoot(root).render(
   </React.StrictMode>
 );
 
-// Clear service worker and cache
+// Service Worker Registration
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', async () => {
     try {
-      // Clear caches
-      const cacheNames = await caches.keys();
-      await Promise.all(cacheNames.map(name => caches.delete(name)));
-
-      // Unregister any existing service workers
+      // Unregister any existing service workers first
       const registrations = await navigator.serviceWorker.getRegistrations();
       await Promise.all(registrations.map(registration => registration.unregister()));
 
       // Register the new service worker
-      await navigator.serviceWorker.register('/sw.js', {
+      const registration = await navigator.serviceWorker.register('/sw.js', {
         scope: '/',
         updateViaCache: 'none'
       });
+
+      // Handle updates
+      registration.addEventListener('updatefound', () => {
+        const newWorker = registration.installing;
+        if (newWorker) {
+          newWorker.addEventListener('statechange', () => {
+            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+              // New content is available; please refresh
+              console.log('New content is available; please refresh');
+            }
+          });
+        }
+      });
+
+      // Handle messages
+      navigator.serviceWorker.addEventListener('message', (event) => {
+        if (event.data && event.data.type === 'CACHE_UPDATED') {
+          console.log('Cache has been updated');
+        }
+      });
+
       console.log('Service worker registered successfully');
     } catch (error) {
       console.error('Service worker registration failed:', error);
+    }
+  });
+
+  // Handle service worker updates
+  let refreshing = false;
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (!refreshing) {
+      refreshing = true;
+      window.location.reload();
     }
   });
 } 
