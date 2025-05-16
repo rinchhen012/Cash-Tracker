@@ -19,7 +19,7 @@ A modern, mobile-first web application designed to help delivery drivers manage 
 - **Frontend Framework**: React with TypeScript
 - **UI Components**: Mantine UI
 - **Styling**: CSS Modules
-- **Database**: Supabase
+- **Database**: Firebase (Firestore)
 - **State Management**: React Hooks
 - **Routing**: React Router
 - **Date Handling**: Day.js
@@ -43,12 +43,21 @@ npm install
 ```
 
 3. Set up environment variables
-   Create a `.env` file in the root directory with:
+   Create a `.env.local` file (or `.env`) in the root directory with your Firebase project configuration. This file should be ignored by Git (ensure it's in your `.gitignore`).
 
 ```env
-VITE_SUPABASE_URL=your_supabase_url
-VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+VITE_FIREBASE_API_KEY="YOUR_FIREBASE_API_KEY"
+VITE_FIREBASE_AUTH_DOMAIN="YOUR_FIREBASE_AUTH_DOMAIN"
+VITE_FIREBASE_PROJECT_ID="YOUR_FIREBASE_PROJECT_ID"
+VITE_FIREBASE_STORAGE_BUCKET="YOUR_FIREBASE_STORAGE_BUCKET"
+VITE_FIREBASE_MESSAGING_SENDER_ID="YOUR_FIREBASE_MESSAGING_SENDER_ID"
+VITE_FIREBASE_APP_ID="YOUR_FIREBASE_APP_ID"
+VITE_FIREBASE_MEASUREMENT_ID="YOUR_FIREBASE_MEASurement_ID" # Optional, for Firebase Analytics
 ```
+
+Note: These variables are used for local development. For deployments (e.g., to Vercel), set these same environment variables in your hosting provider's settings.
+
+This application uses a client-generated `userId` (stored in localStorage via `appUserId` key) to partition data for different users/browsers since it does not have a formal sign-in system.
 
 4. Start the development server
 
