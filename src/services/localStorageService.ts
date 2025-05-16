@@ -25,17 +25,14 @@ export const addPendingTransaction = (transaction: Transaction): void => {
   }
 };
 
-export const removePendingTransaction = (transaction: Transaction): void => {
+export const removePendingTransaction = (transactionId: string): void => {
   try {
     const pending = getPendingTransactions();
-    // Use timestamp and driverId to identify transactions since pending ones might not have an id
-    const filtered = pending.filter(t => 
-      !(t.timestamp === transaction.timestamp && t.driverId === transaction.driverId)
-    );
+    const filtered = pending.filter(t => t.id !== transactionId);
     localStorage.setItem(PENDING_TRANSACTIONS_KEY, JSON.stringify(filtered));
   } catch (error) {
-    console.error('Error removing pending transaction:', error);
-    throw new Error('Failed to remove pending transaction');
+    console.error('Error removing pending transaction by ID:', error);
+    throw new Error('Failed to remove pending transaction by ID');
   }
 };
 

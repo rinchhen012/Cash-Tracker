@@ -1,20 +1,12 @@
 // Base transaction interface
 export interface BaseTransaction {
+  userId: string;
   driverId: number;
   orderTotal: number;
   amountReceived: number;
   changeAmount: number;
   date: string;
   timestamp: number;
-}
-
-// Database transaction shape
-export interface DatabaseTransaction extends BaseTransaction {
-  id: string;
-  driver_id: number;
-  order_total: number;
-  amount_received: number;
-  change_amount: number;
 }
 
 // Application transaction shape

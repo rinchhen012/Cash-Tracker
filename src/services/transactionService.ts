@@ -1,4 +1,5 @@
-import { supabase } from '../config/supabase';
+import { db } from '../config/firebase';
+import { collection, addDoc, DocumentReference, DocumentSnapshot, DocumentData, query, where, orderBy, getDocs, QuerySnapshot, QueryDocumentSnapshot, QueryConstraint, writeBatch, doc } from 'firebase/firestore';
 import { 
   addPendingTransaction, 
   getPendingTransactions, 
@@ -30,76 +31,89 @@ const validateTransaction = (transaction: BaseTransaction): void => {
   }
 };
 
-const transformToDatabase = (transaction: Transaction): any => {
-  const { id, isPending, ...dbTransaction } = transaction;
-  
-  // Ensure all required fields are present and properly formatted
-  const transformed = {
-    driver_id: Number(dbTransaction.driverId),
-    order_total: Number(dbTransaction.orderTotal),
-    amount_received: Number(dbTransaction.amountReceived),
-    change_amount: Number(dbTransaction.changeAmount),
-    date: dbTransaction.date || new Date().toISOString().split('T')[0],
-    timestamp: dbTransaction.timestamp || Date.now()
+const transformToFirestore = (transaction: BaseTransaction | Transaction): Omit<Transaction, 'id' | 'isPending'> => {
+  return {
+    userId: transaction.userId,
+    driverId: Number(transaction.driverId),
+    orderTotal: Number(transaction.orderTotal),
+    amountReceived: Number(transaction.amountReceived),
+    changeAmount: Number(transaction.changeAmount),
+    date: transaction.date || new Date().toISOString().split('T')[0],
+    timestamp: transaction.timestamp || Date.now(),
   };
-  
-  console.log('Transformed transaction:', transformed);
-  return transformed;
 };
 
-const transformFromDatabase = (item: DatabaseTransaction): Transaction => ({
-  id: item.id,
-  driverId: item.driver_id,
-  orderTotal: item.order_total,
-  amountReceived: item.amount_received,
-  changeAmount: item.change_amount,
-  date: item.date,
-  timestamp: item.timestamp,
-  isPending: false,
-});
+const transformFromFirestore = (docSnap: DocumentSnapshot<DocumentData>): Transaction => {
+  const data = docSnap.data();
+  if (!data) {
+    throw new DatabaseError('Document data is undefined for document ID: ' + docSnap.id); 
+  }
+  return {
+    id: docSnap.id,
+    driverId: data.driverId,
+    orderTotal: data.orderTotal,
+    amountReceived: data.amountReceived,
+    changeAmount: data.changeAmount,
+    date: data.date,
+    timestamp: data.timestamp,
+    isPending: false, 
+  };
+};
 
-export const addTransaction = async (transaction: BaseTransaction): Promise<Transaction> => {
+export const addTransaction = async (transaction: BaseTransaction, userId: string): Promise<Transaction> => {
   try {
-    validateTransaction(transaction);
+    const transactionWithUser = { ...transaction, userId };
+    validateTransaction(transactionWithUser);
 
     if (!navigator.onLine) {
-      addPendingTransaction(transaction);
-      return { ...transaction, id: `pending_${Date.now()}`, isPending: true };
+      addPendingTransaction(transactionWithUser);
+      return { ...transactionWithUser, id: `pending_${Date.now()}`, isPending: true };
     }
 
-    const dbTransaction = transformToDatabase(transaction);
-    const { data, error } = await supabase
-      .from('transactions')
-      .insert([dbTransaction])
-      .select()
-      .single();
+    const firestoreTransactionData = transformToFirestore(transactionWithUser);
+    
+    const docRef: DocumentReference = await addDoc(collection(db, "transactions"), firestoreTransactionData);
 
-    if (error) throw new DatabaseError('Failed to save transaction', error);
-    if (!data) throw new DatabaseError('No data returned after saving');
+    return {
+      userId: firestoreTransactionData.userId,
+      driverId: firestoreTransactionData.driverId,
+      orderTotal: firestoreTransactionData.orderTotal,
+      amountReceived: firestoreTransactionData.amountReceived,
+      changeAmount: firestoreTransactionData.changeAmount,
+      date: firestoreTransactionData.date,
+      timestamp: firestoreTransactionData.timestamp,
+      id: docRef.id,
+      isPending: false,
+    };
 
-    return transformFromDatabase(data as DatabaseTransaction);
   } catch (error) {
     if (error instanceof ValidationError) throw error;
     
-    console.error('Error adding transaction:', error);
-    addPendingTransaction(transaction);
-    return { ...transaction, id: `pending_${Date.now()}`, isPending: true };
+    console.error('Error adding transaction to Firestore:', error);
+    addPendingTransaction(transactionWithUser);
+    return { ...transactionWithUser, id: `pending_${Date.now()}`, isPending: true };
   }
 };
 
-export const getTodayTransactions = async (retryAttempt = 0): Promise<Transaction[]> => {
+export const getTodayTransactions = async (userId: string, retryAttempt = 0): Promise<Transaction[]> => {
   try {
     const today = new Date().toISOString().split('T')[0];
-    const { data, error } = await supabase
-      .from('transactions')
-      .select('*')
-      .eq('date', today)
-      .order('timestamp', { ascending: false });
-
-    if (error) throw new DatabaseError('Failed to fetch today\'s transactions', error);
     
-    const onlineTransactions = (data as DatabaseTransaction[]).map(transformFromDatabase);
-    const pendingTransactions = getPendingTransactions().filter(t => t.date === today);
+    const transactionsCollection = collection(db, "transactions");
+    const q = query(
+      transactionsCollection, 
+      where("userId", "==", userId),
+      where("date", "==", today), 
+      orderBy("timestamp", "desc")
+    );
+
+    const querySnapshot: QuerySnapshot<DocumentData> = await getDocs(q);
+    
+    const onlineTransactions: Transaction[] = querySnapshot.docs.map(
+        (doc: QueryDocumentSnapshot<DocumentData>) => transformFromFirestore(doc)
+    );
+    
+    const pendingTransactions = getPendingTransactions().filter(t => t.date === today && t.userId === userId);
 
     return [...pendingTransactions, ...onlineTransactions]
       .sort((a, b) => b.timestamp - a.timestamp);
@@ -107,36 +121,47 @@ export const getTodayTransactions = async (retryAttempt = 0): Promise<Transactio
   } catch (error) {
     if (retryAttempt < MAX_RETRY_ATTEMPTS && navigator.onLine) {
       await sleep(RETRY_DELAY * (retryAttempt + 1));
-      return getTodayTransactions(retryAttempt + 1);
+      return getTodayTransactions(userId, retryAttempt + 1);
     }
 
-    console.error('Error getting today\'s transactions:', error);
-    return getPendingTransactions().filter(t => t.date === new Date().toISOString().split('T')[0]);
+    console.error('Error getting today\'s transactions from Firestore:', error);
+    return getPendingTransactions().filter(t => t.date === new Date().toISOString().split('T')[0] && t.userId === userId);
   }
 };
 
-export const getAllTransactions = async (startDate?: string, endDate?: string, retryAttempt = 0): Promise<Transaction[]> => {
+export const getAllTransactions = async (userId: string, startDate?: string, endDate?: string, retryAttempt = 0): Promise<Transaction[]> => {
   try {
-    let query = supabase
-      .from('transactions')
-      .select('*')
-      .order('timestamp', { ascending: false });
+    const transactionsCollection = collection(db, "transactions");
+    const queryConstraints: QueryConstraint[] = [];
+
+    queryConstraints.push(where("userId", "==", userId));
+    queryConstraints.push(orderBy("timestamp", "desc"));
 
     if (startDate) {
-      query = query.gte('date', startDate);
+      queryConstraints.push(where("date", ">=", startDate));
     }
     if (endDate) {
-      query = query.lte('date', endDate);
+      queryConstraints.push(where("date", "<=", endDate));
     }
-
-    const { data, error } = await query;
-
-    if (error) throw new DatabaseError('Failed to fetch transactions', error);
     
-    const onlineTransactions = (data as DatabaseTransaction[]).map(transformFromDatabase);
+    const q = query(transactionsCollection, ...queryConstraints);
+    const querySnapshot: QuerySnapshot<DocumentData> = await getDocs(q);
+
+    const onlineTransactions: Transaction[] = querySnapshot.docs.map(
+        (doc: QueryDocumentSnapshot<DocumentData>) => transformFromFirestore(doc)
+    );
+    
     const pendingTransactions = getPendingTransactions().filter(t => {
+      if (t.userId !== userId) return false;
       if (!startDate && !endDate) return true;
-      return (!startDate || t.date >= startDate) && (!endDate || t.date <= endDate);
+      const transactionDate = new Date(t.date); // Assuming t.date is YYYY-MM-DD
+      const start = startDate ? new Date(startDate) : null;
+      const end = endDate ? new Date(endDate) : null;
+      
+      let matches = true;
+      if (start) matches = matches && transactionDate >= start;
+      if (end) matches = matches && transactionDate <= end;
+      return matches;
     });
 
     return [...pendingTransactions, ...onlineTransactions]
@@ -145,115 +170,116 @@ export const getAllTransactions = async (startDate?: string, endDate?: string, r
   } catch (error) {
     if (retryAttempt < MAX_RETRY_ATTEMPTS && navigator.onLine) {
       await sleep(RETRY_DELAY * (retryAttempt + 1));
-      return getAllTransactions(startDate, endDate, retryAttempt + 1);
+      return getAllTransactions(userId, startDate, endDate, retryAttempt + 1);
     }
 
-    console.error('Error getting transactions:', error);
-    return getPendingTransactions();
-  }
-};
-
-export const getTransactionsByDate = async (date: string): Promise<Transaction[]> => {
-  try {
-    const { data, error } = await supabase
-      .from('transactions')
-      .select('*')
-      .eq('date', date)
-      .order('timestamp', { ascending: false });
-
-    if (error) throw new DatabaseError(`Failed to fetch transactions for date ${date}`, error);
+    console.error('Error getting all transactions from Firestore:', error);
+    const allPending = getPendingTransactions().filter(t => t.userId === userId);
+    if (!startDate && !endDate) return allPending;
     
-    return (data as DatabaseTransaction[]).map(transformFromDatabase);
-  } catch (error) {
-    if (error instanceof DatabaseError) throw error;
-    throw new NetworkError(`Failed to fetch transactions for date ${date}`);
+    return allPending.filter(t => {
+        const transactionDate = new Date(t.date);
+        const start = startDate ? new Date(startDate) : null;
+        const end = endDate ? new Date(endDate) : null;
+        
+        let matches = true;
+        if (start) matches = matches && transactionDate >= start;
+        if (end) matches = matches && transactionDate <= end;
+        return matches;
+    });
   }
 };
 
-export const getDriverTransactions = async (driverId: number): Promise<Transaction[]> => {
+export const getTransactionsByDate = async (userId: string, date: string): Promise<Transaction[]> => {
+  try {
+    const transactionsCollection = collection(db, "transactions");
+    const q = query(
+      transactionsCollection,
+      where("userId", "==", userId),
+      where("date", "==", date),
+      orderBy("timestamp", "desc")
+    );
+
+    const querySnapshot: QuerySnapshot<DocumentData> = await getDocs(q);
+
+    return querySnapshot.docs.map(
+        (doc: QueryDocumentSnapshot<DocumentData>) => transformFromFirestore(doc)
+    );
+  } catch (error) {
+    console.error(`Error fetching transactions for date ${date} from Firestore:`, error);
+    throw new NetworkError(`Failed to fetch transactions for date ${date}. Check console for details.`);
+  }
+};
+
+export const getDriverTransactions = async (userId: string, driverId: number): Promise<Transaction[]> => {
   try {
     if (driverId < 1 || driverId > 6) {
       throw new ValidationError('Invalid driver ID');
     }
 
-    const { data, error } = await supabase
-      .from('transactions')
-      .select('*')
-      .eq('driver_id', driverId)
-      .order('timestamp', { ascending: false });
+    const transactionsCollection = collection(db, "transactions");
+    const q = query(
+      transactionsCollection,
+      where("userId", "==", userId),
+      where("driverId", "==", driverId),
+      orderBy("timestamp", "desc")
+    );
 
-    if (error) throw new DatabaseError(`Failed to fetch transactions for driver ${driverId}`, error);
-    
-    return (data as DatabaseTransaction[]).map(transformFromDatabase);
+    const querySnapshot: QuerySnapshot<DocumentData> = await getDocs(q);
+
+    return querySnapshot.docs.map(
+        (doc: QueryDocumentSnapshot<DocumentData>) => transformFromFirestore(doc)
+    );
   } catch (error) {
     if (error instanceof ValidationError || error instanceof DatabaseError) throw error;
-    throw new NetworkError(`Failed to fetch transactions for driver ${driverId}`);
+    console.error(`Error fetching transactions for driver ${driverId} from Firestore:`, error);
+    throw new NetworkError(`Failed to fetch transactions for driver ${driverId}. Check console for details.`);
   }
 };
 
-export const syncPendingTransactions = async (): Promise<void> => {
+export const syncPendingTransactions = async (userId: string): Promise<void> => {
   if (!navigator.onLine) {
-    throw new NetworkError('Cannot sync while offline');
+    console.warn('Cannot sync while offline.'); 
+    return; 
   }
 
-  const pending = getPendingTransactions();
-  console.log('Pending transactions to sync:', pending.length);
-  
-  if (pending.length === 0) return;
+  // Get only pending transactions for the current user
+  const allPending = getPendingTransactions();
+  const userPending = allPending.filter(p => p.userId === userId);
 
-  const results: { success: boolean; transaction: Transaction; error?: Error }[] = [];
-  
-  for (const transaction of pending) {
-    try {
-      console.log('Syncing transaction:', transaction);
-      
-      // Transform and validate
-      const dbTransaction = transformToDatabase(transaction);
-      console.log('Transformed transaction:', dbTransaction);
-      
-      // Insert into database
-      const { data, error } = await supabase
-        .from('transactions')
-        .insert([dbTransaction])
-        .select()
-        .single();
+  console.log(`Pending transactions for user ${userId} to sync with Firestore:`, userPending.length);
 
-      if (error) {
-        console.error('Database error:', error);
-        throw new DatabaseError('Failed to sync transaction', error);
-      }
-      
-      if (!data) {
-        console.error('No data returned from database');
-        throw new DatabaseError('No data returned after syncing');
-      }
-
-      console.log('Successfully synced transaction:', data);
-      
-      // Remove from pending storage
-      removePendingTransaction(transaction);
-      results.push({ success: true, transaction });
-      
-    } catch (error) {
-      console.error('Error syncing transaction:', error);
-      results.push({ 
-        success: false, 
-        transaction, 
-        error: error instanceof Error ? error : new Error('Unknown error occurred') 
-      });
-    }
+  if (userPending.length === 0) {
+    console.log('No pending transactions for this user to sync.');
+    return;
   }
 
-  // Log sync results
-  const successCount = results.filter(r => r.success).length;
-  const failureCount = results.filter(r => !r.success).length;
+  const batch = writeBatch(db);
+  const transactionsCollectionRef = collection(db, "transactions");
+
+  userPending.forEach(p => {
+    const newDocRef = doc(transactionsCollectionRef);
+    // Ensure the transaction being transformed and batched includes the correct userId
+    const transactionToSync = { ...p, userId }; 
+    const firestoreData = transformToFirestore(transactionToSync as BaseTransaction);
+    batch.set(newDocRef, firestoreData);
+  });
   
-  console.log(`Sync completed: ${successCount} succeeded, ${failureCount} failed`);
-  
-  if (failureCount > 0) {
-    const failedTransactions = results.filter(r => !r.success);
-    console.error('Failed transactions:', failedTransactions);
-    throw new Error(`Failed to sync ${failureCount} transactions`);
+  try {
+    await batch.commit();
+    console.log(`Successfully synced pending transactions for user ${userId} to Firestore.`);
+    
+    userPending.forEach(p => {
+      if (typeof p.id === 'string' && p.id.startsWith('pending_')) { 
+        removePendingTransaction(p.id); // removePendingTransaction uses ID, which is fine
+      } else {
+        console.warn('Pending transaction found without a valid string pending_ ID during removal:', p);
+      }
+    });
+
+  } catch (error) {
+    console.error('Error syncing pending transactions to Firestore:', error);
+    throw new DatabaseError('Failed to sync some pending transactions to Firestore', error);
   }
 };
 
