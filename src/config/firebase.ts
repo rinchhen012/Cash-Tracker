@@ -3,15 +3,15 @@ import { getFirestore } from "firebase/firestore";
 // import { getAuth } from "firebase/auth"; // If you decide to use Firebase Auth later
 // import { getStorage } from "firebase/storage"; // If you decide to use Firebase Storage later
 
-// TODO: Replace with your actual Firebase project configuration
 const firebaseConfig = {
-    apiKey: "AIzaSyDUbHevG-SpqLBlvbT9nXAIAOUO6d86W2o",
-    authDomain: "cash-tracker-4802f.firebaseapp.com",
-    projectId: "cash-tracker-4802f",
-    storageBucket: "cash-tracker-4802f.firebasestorage.app",
-    messagingSenderId: "302784260827",
-    appId: "1:302784260827:web:93d5f4bce4850a23b3bafe"
-  };
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID,
+  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID // Optional
+};
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
