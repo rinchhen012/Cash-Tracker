@@ -5,6 +5,7 @@ import { IconArrowLeft, IconFilter, IconWifiOff, IconCloudUpload, IconClock, Ico
 import { getAllTransactions, getTodayTransactions, syncPendingTransactions } from '../services/transactionService';
 import { getPendingTransactions } from '../services/localStorageService';
 import { Transaction } from '../types';
+import { getOrCreateAppUserId } from '../utils/userId';
 import dayjs from 'dayjs';
 
 const History = () => {
@@ -28,7 +29,10 @@ const History = () => {
   useEffect(() => {
     const handleOnline = () => setIsOffline(false);
     const handleOffline = () => setIsOffline(true);
-    const checkPending = () => setPendingCount(getPendingTransactions().length);
+    const checkPending = () => {
+      const appUserId = getOrCreateAppUserId();
+      setPendingCount(getPendingTransactions().filter(t => t.userId === appUserId).length);
+    };
 
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
@@ -49,9 +53,10 @@ const History = () => {
     
     setSyncing(true);
     try {
-      await syncPendingTransactions();
+      const appUserId = getOrCreateAppUserId();
+      await syncPendingTransactions(appUserId);
       await refreshTransactions();
-      setPendingCount(getPendingTransactions().length);
+      setPendingCount(getPendingTransactions().filter(t => t.userId === appUserId).length);
     } catch (error) {
       console.error('Sync failed:', error);
     } finally {
@@ -64,7 +69,8 @@ const History = () => {
     const loadAllDates = async () => {
       try {
         setLoadingDates(true);
-        const allTransactions = await getAllTransactions();
+        const appUserId = getOrCreateAppUserId();
+        const allTransactions = await getAllTransactions(appUserId);
         const dates = [...new Set(allTransactions.map(t => t.date))].sort().reverse();
         setAvailableDates(dates);
       } catch (error) {
@@ -83,12 +89,11 @@ const History = () => {
       try {
         setLoading(true);
         setError(null);
+        const appUserId = getOrCreateAppUserId();
         
-        // If a specific date is selected, load transactions for that date
-        // Otherwise, load today's transactions
         const data = selectedDate 
-          ? await getAllTransactions(selectedDate, selectedDate)
-          : await getTodayTransactions();
+          ? await getAllTransactions(appUserId, selectedDate, selectedDate)
+          : await getTodayTransactions(appUserId);
 
         if (Array.isArray(data)) {
           setTransactions(data);
@@ -115,6 +120,7 @@ const History = () => {
     
     setLoadingMore(true);
     try {
+      const appUserId = getOrCreateAppUserId();
       // Get the oldest transaction date
       const oldestTransaction = [...transactions].sort((a, b) => 
         dayjs(a.date).valueOf() - dayjs(b.date).valueOf()
@@ -125,7 +131,7 @@ const History = () => {
       // Load transactions from the previous day
       const targetDate = dayjs(oldestTransaction.date).subtract(1, 'day').format('YYYY-MM-DD');
       
-      const olderTransactions = await getAllTransactions(targetDate, targetDate);
+      const olderTransactions = await getAllTransactions(appUserId, targetDate, targetDate);
       
       if (olderTransactions.length === 0) {
         setHasLoadedAll(true);
@@ -144,11 +150,10 @@ const History = () => {
     if (refreshing) return;
     setRefreshing(true);
     try {
-      // If a specific date is selected, refresh that date's transactions
-      // Otherwise, refresh today's transactions
+      const appUserId = getOrCreateAppUserId();
       const refreshData = selectedDate 
-        ? await getAllTransactions(selectedDate, selectedDate)
-        : await getTodayTransactions();
+        ? await getAllTransactions(appUserId, selectedDate, selectedDate)
+        : await getTodayTransactions(appUserId);
 
       if (Array.isArray(refreshData)) {
         if (selectedDate) {

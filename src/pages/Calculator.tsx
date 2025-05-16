@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Container, Title, NumberInput, Button, Stack, Text, Paper, Box } from '@mantine/core';
 import { IconCalculator, IconArrowLeft } from '@tabler/icons-react';
 import { addTransaction } from '../services/transactionService';
+import { getOrCreateAppUserId } from '../utils/userId';
 import dayjs from 'dayjs';
 
 const Calculator = () => {
@@ -21,7 +22,9 @@ const Calculator = () => {
 
     setIsSubmitting(true);
     try {
+      const appUserId = getOrCreateAppUserId();
       const transaction = {
+        userId: appUserId,
         driverId: parseInt(driverId),
         orderTotal,
         amountReceived,
@@ -30,7 +33,7 @@ const Calculator = () => {
         timestamp: Date.now()
       };
 
-      await addTransaction(transaction);
+      await addTransaction(transaction, appUserId);
       setOrderTotal('');
       setAmountReceived('');
     } catch (error) {

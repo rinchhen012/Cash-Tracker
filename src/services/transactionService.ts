@@ -7,7 +7,6 @@ import {
 } from './localStorageService';
 import {
   Transaction,
-  DatabaseTransaction,
   BaseTransaction,
   NetworkError,
   DatabaseError,
@@ -50,6 +49,7 @@ const transformFromFirestore = (docSnap: DocumentSnapshot<DocumentData>): Transa
   }
   return {
     id: docSnap.id,
+    userId: data.userId,
     driverId: data.driverId,
     orderTotal: data.orderTotal,
     amountReceived: data.amountReceived,
@@ -90,8 +90,9 @@ export const addTransaction = async (transaction: BaseTransaction, userId: strin
     if (error instanceof ValidationError) throw error;
     
     console.error('Error adding transaction to Firestore:', error);
-    addPendingTransaction(transactionWithUser);
-    return { ...transactionWithUser, id: `pending_${Date.now()}`, isPending: true };
+    const transactionWithUserForCatch = { ...transaction, userId };
+    addPendingTransaction(transactionWithUserForCatch);
+    return { ...transactionWithUserForCatch, id: `pending_${Date.now()}`, isPending: true };
   }
 };
 
@@ -290,8 +291,14 @@ if (typeof window !== 'undefined') {
   window.addEventListener('online', () => {
     clearTimeout(syncTimeout);
     syncTimeout = setTimeout(() => {
-      console.log('Back online, syncing pending transactions...');
-      syncPendingTransactions();
+      // Attempt to get userId from localStorage for the sync operation
+      const appUserId = localStorage.getItem('appUserId');
+      if (appUserId) {
+        console.log('Back online, syncing pending transactions for user:', appUserId);
+        syncPendingTransactions(appUserId);
+      } else {
+        console.warn('Back online, but no appUserId found in localStorage. Cannot sync.');
+      }
     }, 1000);
   });
 }
